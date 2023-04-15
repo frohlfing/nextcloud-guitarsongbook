@@ -38,8 +38,10 @@
           <h2 class="location">Neuen Song anlegen</h2>
         </div>
       </div>
-      <!--<my-todo-item></my-todo-item>-->
       <div class="main-wrapper">
+
+        <alpha-tab></alpha-tab>
+
         <div v-if="currentNote">
           <input ref="title"
             v-model="currentNote.title"
@@ -70,7 +72,7 @@ import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationI
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
-import MyTodoItem from './components/MyTodoItem'
+import AlphaTab from './components/AlphaTab'
 
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
@@ -86,7 +88,7 @@ export default {
     NcAppNavigationNew,
     NcAppContent,
     NcActionButton,
-    MyTodoItem,
+    AlphaTab,
 	},
 	data() {
 		return {
