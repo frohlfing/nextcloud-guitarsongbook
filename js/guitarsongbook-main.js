@@ -19954,11 +19954,10 @@ var render = function render() {
     ref: "alphaTab",
     attrs: {
       id: "alphaTab",
-      "data-core-useworkers": "false",
       "data-useworkers": "false",
       "data-tex": "true"
     }
-  }, [_vm._v('\n    \\title "Hello alphaTab"\n    .\n    :4 0.6 1.6 3.6 0.5 2.5 3.5 0.4 2.4 |\n    3.4 0.3 2.3 0.2 1.2 3.2 0.1 1.1 |\n    3.1.1\n  ')])]);
+  }, [_vm._v('\n\t\t\\title "Hello alphaTab"\n\t\t.\n\t\t:4 0.6 1.6 3.6 0.5 2.5 3.5 0.4 2.4 |\n\t\t3.4 0.3 2.3 0.2 1.2 3.2 0.1 1.1 |\n\t\t3.1.1\n\t')])]);
 };
 var staticRenderFns = [];
 render._withStripped = true;
@@ -52725,4 +52724,4 @@ vue__WEBPACK_IMPORTED_MODULE_2__["default"].config.devtools = true;
 
 /******/ })()
 ;
-//# sourceMappingURL=guitarsongbook-main.js.map?v=ffb8f58288907dc1dad3
+//# sourceMappingURL=guitarsongbook-main.js.map?v=b8d1e3c4c3adcf7b8911
