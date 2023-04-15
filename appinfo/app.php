@@ -12,7 +12,7 @@ namespace OCA\GuitarTabPlayer\AppInfo;
 
 use OCP\Util;
 
-Util::addScript('guitarsongbook', 'alphatab/dist/alphaTab.min');
+Util::addScript('guitarsongbook', '../3dparty/alphatab/dist/alphaTab.min');
 
 if(class_exists('\\OCP\\AppFramework\\Http\\EmptyContentSecurityPolicy')) {
     /** @noinspection PhpUndefinedClassInspection */
