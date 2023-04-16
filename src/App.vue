@@ -1,67 +1,71 @@
+<!--suppress CssUnresolvedCustomProperty -->
 <template>
-    <!--
+	<!--
     SPDX-FileCopyrightText: Frank Rohlfing <mail@frank-rohlfing.de>
     SPDX-License-Identifier: AGPL-3.0-or-later
     -->
 	<NcContent app-name="guitarsongbook">
-    <NcAppNavigation>
-      <NcAppNavigationNew v-if="!loading"
-                          :text="t('guitarsongbook', 'New note')"
-                          :disabled="false"
-                          button-id="new-guitarsongbook-button"
-                          button-class="icon-add"
-                          @click="newNote" />
-      <ul>
-        <NcAppNavigationItem v-for="note in notes"
-                             :key="note.id"
-                             :title="note.title ? note.title : t('guitarsongbook', 'New note')"
-                             :class="{active: currentNoteId === note.id}"
-                             @click="openNote(note)">
-          <template slot="actions">
-            <NcActionButton v-if="note.id === -1"
-                            icon="icon-close"
-                            @click="cancelNewNote(note)">
-              {{ t('guitarsongbook', 'Cancel note creation') }}
-            </NcActionButton>
-            <NcActionButton v-else
-                            icon="icon-delete"
-                            @click="deleteNote(note)">
-              {{ t('guitarsongbook', 'Delete note') }}
-            </NcActionButton>
-          </template>
-        </NcAppNavigationItem>
-      </ul>
-    </NcAppNavigation>
-    <NcAppContent>
-      <div class="controls-wrapper">
-        <div data-v-e345c782="" class="location-wrapper">
-          <h2 class="location">Neuen Song anlegen</h2>
-        </div>
-      </div>
-      <div class="main-wrapper">
+		<NcAppNavigation>
+			<NcAppNavigationNew v-if="!loading"
+				:text="t('guitarsongbook', 'New note')"
+				:disabled="false"
+				button-id="new-guitarsongbook-button"
+				button-class="icon-add"
+				@click="newNote" />
+			<ul>
+				<NcAppNavigationItem v-for="note in notes"
+					:key="note.id"
+					:title="note.title ? note.title : t('guitarsongbook', 'New note')"
+					:class="{active: currentNoteId === note.id}"
+					@click="openNote(note)">
+					<template slot="actions">
+						<NcActionButton v-if="note.id === -1"
+							icon="icon-close"
+							@click="cancelNewNote(note)">
+							{{ t('guitarsongbook', 'Cancel note creation') }}
+						</NcActionButton>
+						<NcActionButton v-else
+							icon="icon-delete"
+							@click="deleteNote(note)">
+							{{ t('guitarsongbook', 'Delete note') }}
+						</NcActionButton>
+					</template>
+				</NcAppNavigationItem>
+			</ul>
+		</NcAppNavigation>
+		<NcAppContent>
+			<div class="controls-wrapper">
+				<div data-v-e345c782="" class="location-wrapper">
+					<h2 class="location">
+						Neuen Song anlegen
+					</h2>
+				</div>
+			</div>
+			<div class="main-wrapper">
+				<AlphaTab />
 
-        <alpha-tab></alpha-tab>
-
-        <div v-if="currentNote">
-          <input ref="title"
-            v-model="currentNote.title"
-            type="text"
-            :disabled="updating">
-          <textarea ref="content" v-model="currentNote.content" :disabled="updating" />
-          <input type="button"
-            class="primary"
-            :value="t('guitarsongbook', 'Save')"
-            :disabled="updating || !savePossible"
-            @click="saveNote">
-        </div>
-        <div v-else id="emptycontent">
-          <div class="icon-file" />
-          <h2>{{
-           t('guitarsongbook', 'Create a note to get started') }}</h2>
-        </div>
-      </div>
-    </NcAppContent>
-  </NcContent>
+				<div v-if="currentNote">
+					<input ref="title"
+						v-model="currentNote.title"
+						type="text"
+						:disabled="updating">
+					<textarea ref="content" v-model="currentNote.content" :disabled="updating" />
+					<input type="button"
+						class="primary"
+						:value="t('guitarsongbook', 'Save')"
+						:disabled="updating || !savePossible"
+						@click="saveNote">
+				</div>
+				<div v-else id="emptycontent">
+					<div class="icon-file" />
+					<h2>
+						{{
+							t('guitarsongbook', 'Create a note to get started') }}
+					</h2>
+				</div>
+			</div>
+		</NcAppContent>
+	</NcContent>
 </template>
 
 <script>
@@ -73,7 +77,6 @@ import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNe
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import AlphaTab from './components/AlphaTab'
-
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -82,13 +85,13 @@ import axios from '@nextcloud/axios'
 export default {
 	name: 'App',
 	components: {
-    NcContent,
-    NcAppNavigation,
-    NcAppNavigationItem,
-    NcAppNavigationNew,
-    NcAppContent,
-    NcActionButton,
-    AlphaTab,
+		NcContent,
+		NcAppNavigation,
+		NcAppNavigationItem,
+		NcAppNavigationNew,
+		NcAppContent,
+		NcActionButton,
+		AlphaTab,
 	},
 	data() {
 		return {
@@ -101,7 +104,8 @@ export default {
 	computed: {
 		/**
 		 * Return the currently selected note object
-		 * @returns {Object|null}
+		 *
+		 * @return {object | null}
 		 */
 		currentNote() {
 			if (this.currentNoteId === null) {
@@ -112,7 +116,8 @@ export default {
 
 		/**
 		 * Returns true if a note is selected and its title is not empty
-		 * @returns {Boolean}
+		 *
+		 * @return {boolean}
 		 */
 		savePossible() {
 			return this.currentNote && this.currentNote.title !== ''
@@ -135,7 +140,8 @@ export default {
 	methods: {
 		/**
 		 * Create a new note and focus the note content field automatically
-		 * @param {Object} note Note object
+		 *
+		 * @param {object} note Note object
 		 */
 		openNote(note) {
 			if (this.updating) {
@@ -184,7 +190,8 @@ export default {
 		},
 		/**
 		 * Create a new note by sending the information to the server
-		 * @param {Object} note Note object
+		 *
+		 * @param {object} note Note object
 		 */
 		async createNote(note) {
 			this.updating = true
@@ -201,7 +208,8 @@ export default {
 		},
 		/**
 		 * Update an existing note on the server
-		 * @param {Object} note Note object
+		 *
+		 * @param {object} note Note object
 		 */
 		async updateNote(note) {
 			this.updating = true
@@ -215,7 +223,8 @@ export default {
 		},
 		/**
 		 * Delete a note, remove it from the frontend and show a hint
-		 * @param {Object} note Note object
+		 *
+		 * @param {object} note Note object
 		 */
 		async deleteNote(note) {
 			try {

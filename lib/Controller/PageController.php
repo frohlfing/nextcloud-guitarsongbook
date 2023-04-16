@@ -6,14 +6,19 @@ declare(strict_types=1);
 namespace OCA\GuitarSongbook\Controller;
 
 use OCA\GuitarSongbook\AppInfo\Application;
+use OCA\GuitarSongbook\Service\SongService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http\StreamResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
 use OCP\Util;
 
 class PageController extends Controller {
-	public function __construct(IRequest $request) {
+    private SongService $songService;
+
+	public function __construct(IRequest $request, SongService $songService) {
 		parent::__construct(Application::APP_ID, $request);
+        $this->songService = $songService;
 	}
 
 	/**
@@ -25,4 +30,13 @@ class PageController extends Controller {
 
 		return new TemplateResponse(Application::APP_ID, 'main');
 	}
+
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function load($filename): StreamResponse
+    {
+        return $this->songService->file($filename);
+    }
 }
