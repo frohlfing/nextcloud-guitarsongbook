@@ -14,13 +14,11 @@
     <div id="alphaTab"
          ref="alphaTab"
          data-useworkers="false">
-      Hallo Welt
     </div>
   </div>
 </template>
 
 <script>
-
 import LoadingIndicator from './LoadingIndicator'
 
 export default {
@@ -33,15 +31,13 @@ export default {
       rendering: false,
     }
   },
+  props: [
+    'filename',
+    'tex',
+  ],
   mounted() {
-    //const bytes = System.IO.File.OpenRead("http://localhost/laravel9/public/songs/canon.gp")
     const div = this.$refs.alphaTab
-    const options = {
-      //file: "https://www.alphatab.net/files/canon.gp",
-      //file: "http://localhost/laravel9/public/songs/canon.gp",
-      //file: "../../data/admin/files/Songs/canon.gp",
-    }
-    const api = new alphaTab.AlphaTabApi(div, options)
+    const api = new alphaTab.AlphaTabApi(div, {})
     api.renderStarted.on(() => {
       this.rendering = true
     })
@@ -50,8 +46,15 @@ export default {
       //setTimeout(function(){self.rendering = false}, 2000)
       this.rendering = false
     })
-    api.load('load/canon.gp');
+    this.api = api
   },
+  watch: {
+    filename(newFilename) {
+      this.api.load('load/' + encodeURIComponent(newFilename))
+    },
+    tex(newTex) {
+      this.api.tex(newTex)
+    }
+  }
 }
-
 </script>

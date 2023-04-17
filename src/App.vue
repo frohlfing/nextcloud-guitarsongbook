@@ -6,7 +6,7 @@
     -->
 	<NcContent app-name="guitarsongbook">
 		<NcAppNavigation>
-      <FileUpload/>
+      <NavFileUpload @uploaded="fileUploaded"/>
 			<NcAppNavigationNew v-if="!loading"
           :text="t('guitarsongbook', 'New note')"
           :disabled="false"
@@ -40,15 +40,94 @@
 		</NcAppNavigation>
 		<NcAppContent>
 			<div class="controls-wrapper">
-				<div data-v-e345c782="" class="location-wrapper">
+				<div class="location-wrapper">
 					<h2 class="location">
 						Neuen Song anlegen!
 					</h2>
 				</div>
+        <NcButton
+            v-if="false"
+            type="primary"
+            :aria-label="t('guitarsongbook', 'Edit')"
+            @click=""
+        >
+          <template #icon>
+            <PencilIcon :size="20" />
+          </template>
+          {{ t("guitarsongbook", "Edit") }}
+        </NcButton>
+        <NcButton
+            v-if="true"
+            type="primary"
+            :aria-label="t('guitarsongbook', 'Save')"
+            @click=""
+        >
+          <template #icon>
+            <LoadingIcon
+                v-if="false"
+                :size="20"
+                class="animation-rotate"
+            />
+            <CheckmarkIcon v-else :size="20" />
+          </template>
+          {{ t('guitarsongbook', 'Save') }}
+        </NcButton>
+        <NcActions
+            v-if="true"
+            :force-menu="true"
+            class="overflow-menu"
+        >
+          <NcActionButton
+              v-if="true"
+              :icon="false ? 'icon-loading-small' : 'icon-history'"
+              class="action-button"
+              :aria-label="t('guitarsongbook', 'Reload song')"
+              @click=""
+          >
+            {{ t("guitarsongbook", "Reload song") }}
+          </NcActionButton>
+          <NcActionButton
+              v-if="true"
+              class="action-button"
+              :aria-label="t('guitarsongbook', 'Print song')"
+              @click=""
+          >
+            <template #icon=""><printer-icon :size="20" /></template>
+            {{ t('guitarsongbook', 'Print song') }}
+          </NcActionButton>
+          <NcActionButton
+              v-if="true"
+              icon="icon-delete"
+              class="action-button"
+              :aria-label="t('guitarsongbook', 'Delete song')"
+              @click=""
+          >
+            {{ t('guitarsongbook', 'Delete song') }}
+          </NcActionButton>
+          <ActionFileUpload @uploaded="fileUploaded"/>
+          <NcActionButton
+              v-if="true"
+              class="action-button"
+              :aria-label="t('guitarsongbook', 'Abort editing')"
+              @click=""
+          >
+            {{ t('guitarsongbook', 'Abort editing') }}
+            <template #icon>
+              <NcLoadingIcon
+                  v-if="false"
+                  :size="20"
+              />
+              <eye-icon v-else :size="20" />
+            </template>
+          </NcActionButton>
+        </NcActions>
 			</div>
 			<div class="main-wrapper">
-				<AlphaTab />
-
+        <FileUpload @uploaded="fileUploaded"/>
+				<AlphaTab
+            :filename="filename"
+            :tex="alphaTex"
+        />
 				<div v-if="currentNote">
 					<input ref="title"
 						v-model="currentNote.title"
@@ -74,17 +153,26 @@
 </template>
 
 <script>
-
 import NcContent from '@nextcloud/vue/dist/Components/NcContent'
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation'
 import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import AlphaTab from './components/AlphaTab'
+import NavFileUpload from './components/NavFileUpload'
+import ActionFileUpload from './components/ActionFileUpload'
 import FileUpload from './components/FileUpload'
+import NcLoadingIcon from "@nextcloud/vue/dist/Components/NcLoadingIcon"
 import PlusIcon from 'vue-material-design-icons/Plus'
+import PencilIcon from "vue-material-design-icons/Pencil.vue"
+import LoadingIcon from "vue-material-design-icons/Loading.vue"
+import CheckmarkIcon from "vue-material-design-icons/Check.vue"
+import PrinterIcon from "vue-material-design-icons/Printer.vue"
+import EyeIcon from "vue-material-design-icons/Eye.vue"
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -98,11 +186,21 @@ export default {
 		NcAppNavigationItem,
 		NcAppNavigationNew,
 		NcAppContent,
+    NcActions,
 		NcActionButton,
 		NcActionInput,
+		NcButton,
 		AlphaTab,
+    NavFileUpload,
+    ActionFileUpload,
     FileUpload,
+    NcLoadingIcon,
     PlusIcon,
+    PrinterIcon,
+    PencilIcon,
+    LoadingIcon,
+    CheckmarkIcon,
+    EyeIcon,
 	},
 	data() {
 		return {
@@ -110,6 +208,8 @@ export default {
 			currentNoteId: null,
 			updating: false,
 			loading: true,
+      filename: null,
+      alphaTex: null,
 		}
 	},
 	computed: {
@@ -145,10 +245,16 @@ export default {
 			console.error(e)
 			showError(t('guitarsongbook', 'Could not fetch notes'))
 		}
+    //this.filename = 'canon.gp'
+    this.alphaTex = "\\title 'Test' . 3.3.4"
 		this.loading = false
 	},
 
 	methods: {
+    fileUploaded(filename) {
+      //alert(filename)
+      this.filename = filename
+    },
 		/**
 		 * Create a new note and focus the note content field automatically
 		 *
@@ -253,63 +359,65 @@ export default {
 	},
 }
 </script>
+
 <style scoped>
-	#app-content > div {
-		width: 100%;
-		height: 100%;
-		padding: 20px;
-		display: flex;
-		flex-direction: column;
-		flex-grow: 1;
-	}
+#app-content > div {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
 
-	input[type='text'] {
-		width: 100%;
-	}
+input[type='text'] {
+  width: 100%;
+}
 
-	textarea {
-		flex-grow: 1;
-		width: 100%;
-	}
+textarea {
+  flex-grow: 1;
+  width: 100%;
+}
 
-  .main-wrapper {
-    width: 100%;
-    padding: 1rem;
-  }
+.main-wrapper {
+  width: 100%;
+  padding: 1rem;
+}
 
-  /* AppControls */
+/* AppControls */
 
-  .controls-wrapper {
-    --nc-button-size: 44px;
-    --vertical-padding: 4px;
-    position: sticky;
-    z-index: 2;
-    top: 0;
-    display: flex;
-    width: 100%;
-    min-height: calc(44px + 2 * var(--vertical-padding));
-    flex-direction: row;
-    padding: var(--vertical-padding) 1rem var(--vertical-padding) calc(44px + 2 * var(--vertical-padding));
-    border-bottom: 1px solid var(--color-border);
-    background-color: var(--color-main-background);
-    gap: 8px;
-  }
+div.controls-wrapper {
+  --nc-button-size: 44px;
+  --vertical-padding: 4px;
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  width: 100%;
+  min-height: calc(44px + 2 * var(--vertical-padding));
+  flex-direction: row;
+  padding: var(--vertical-padding) 1rem var(--vertical-padding) calc(44px + 2 * var(--vertical-padding));
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-main-background);
+  gap: 8px;
+}
 
-  .location-wrapper {
-     display: flex;
-     flex: 1;
-     flex-direction: column;
-     justify-content: center;
-   }
+div.location-wrapper {
+   display: flex;
+   flex: 1;
+   flex-direction: column;
+   justify-content: center;
+ }
 
-  .location {
-    width: 100%;
-    margin: 0;
-    font-size: 1.2em;
-    line-height: 1em;
-    overflow-x: clip;
-    overflow-y: visible;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+h2.location {
+  width: 100%;
+  margin-bottom: 0;
+  font-size: 1.2em;
+  line-height: 1em;
+  overflow-x: clip;
+  overflow-y: visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 </style>

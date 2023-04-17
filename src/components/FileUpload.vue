@@ -1,21 +1,20 @@
 <!--suppress CssUnresolvedCustomProperty -->
 <template>
-  <NcAppNavigationNew
-      :text="t('guitarsongbook', 'Upload Guitar Pro File')"
-      :disabled="uploading ? 'disabled' : false"
-      button-id="upload-guitarsongbook-button"
-      button-class="icon-upload"
+  <NcButton
+      :disabled="uploading"
+      type="secondary"
+      class="button"
       @click="uploadFile($event)">
     <template #icon>
       <UploadIcon :size="20" />
     </template>
-  </NcAppNavigationNew>
+    {{ t('guitarsongbook', 'Upload Guitar Pro File') }}
+  </NcButton>
 </template>
 
 <!--suppress ExceptionCaughtLocallyJS, JSUnresolvedFunction_, JSCheckFunctionSignatures_ -->
 <script>
-
-import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import UploadIcon from 'vue-material-design-icons/Upload'
 import { generateUrl } from '@nextcloud/router'
 import { showError } from '@nextcloud/dialogs'
@@ -23,7 +22,7 @@ import { showError } from '@nextcloud/dialogs'
 export default {
   name: 'FileUpload',
   components: {
-    NcAppNavigationNew,
+    NcButton,
     UploadIcon,
   },
   data() {
@@ -95,10 +94,7 @@ export default {
           throw new Error(message);
         }
         const filename = await response.json();
-
-        // open file
-        alert(filename)
-        //api.load('load/' + encodeURIComponent(filename));
+        this.$emit('uploaded', filename);
       }
       catch (e) {
         console.log(e.response ? e.response.data : e.message)
