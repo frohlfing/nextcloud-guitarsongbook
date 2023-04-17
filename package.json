@@ -26,7 +26,8 @@
     "@nextcloud/initial-state": "^2.0.0",
     "@nextcloud/router": "^2.0.0",
     "@nextcloud/vue": "^7.1.0",
-    "vue": "^2.7.0"
+    "vue": "^2.7.0",
+    "vue-material-design-icons": "^5.2.0"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
