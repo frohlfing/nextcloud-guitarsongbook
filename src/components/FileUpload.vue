@@ -1,44 +1,30 @@
 <!--suppress CssUnresolvedCustomProperty -->
 <template>
-  <div>
-  <NcActionInput
-      :disabled="uploading ? 'disabled' : null"
-      :icon="uploading ? 'icon-loading-small' : 'icon-upload'"
-      @submit="uploadFile($event)">
-    {{ t('guitarsongbook', 'Upload Guitar Pro File') }}
-  </NcActionInput>
-
-
-  <div class="upload">
-    <div class="upload-icon">
-      <Upload
-          :size="20"
-          :disabled="uploading ? 'disabled' : null"/>
-    </div>
-    <label class="upload-input">
-      <input type="file" @change="uploadFile($event)"/>
-      {{ t('guitarsongbook', 'Upload Guitar Pro File') }}
-    </label>
-  </div>
-
-  </div>
+  <NcAppNavigationNew
+      :text="t('guitarsongbook', 'Upload Guitar Pro File')"
+      :disabled="uploading ? 'disabled' : false"
+      button-id="upload-guitarsongbook-button"
+      button-class="icon-upload"
+      @click="uploadFile($event)">
+    <template #icon>
+      <UploadIcon :size="20" />
+    </template>
+  </NcAppNavigationNew>
 </template>
 
+<!--suppress ExceptionCaughtLocallyJS, JSUnresolvedFunction_, JSCheckFunctionSignatures_ -->
 <script>
 
-import NcActions from '@nextcloud/vue/dist/Components/NcActions'
-import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
-import Upload from 'vue-material-design-icons/Upload'
-import axios from '@nextcloud/axios'
+import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
+import UploadIcon from 'vue-material-design-icons/Upload'
 import { generateUrl } from '@nextcloud/router'
 import { showError } from '@nextcloud/dialogs'
 
 export default {
   name: 'FileUpload',
   components: {
-    NcActions,
-    NcActionInput,
-    Upload,
+    NcAppNavigationNew,
+    UploadIcon,
   },
   data() {
     return {
@@ -46,65 +32,83 @@ export default {
     }
   },
   methods: {
-    async uploadFile(event) {
+    // async uploadFile(event) {
+    //   this.uploading = true
+    //   try {
+    //     const formData = new FormData();
+    //     formData.append('file', event.target.files[0]);
+    //     const response = await axios.post(
+    //         generateUrl('/apps/guitarsongbook/upload'),
+    //         formData,
+    //         {headers: {'Content-Type': 'multipart/form-data'}}
+    //     )
+    //     const filename = response.data;
+    //     alert(filename)
+    //     //api.load('load/' + encodeURIComponent(song));
+    //   }
+    //   catch (e) {
+    //     console.log(e.response ? e.response.data : e.message)
+    //     showError(t('guitarsongbook', 'Could not upload the file.'))
+    //   }
+    //   this.uploading = false
+    // },
+
+    // Upload mit File System Access API
+    // File System Access API: https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API
+    // How to Use Fetch: https://dmitripavlutin.com/javascript-fetch-async-await/
+    // MIME types: https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+    // alphaTab file importers: https://www.alphatab.net/docs/introduction#the-file-importers
+    async uploadFile()
+    {
       this.uploading = true
       try {
+        // select a local file
+        const [fileHandle] = await window.showOpenFilePicker({
+          types: [{
+            description: 'GuitarPro, alphaTex, CapXML, MusicXML',
+            accept: {
+              'application/octet-stream': ['.gp3', '.gp4', '.gp5', '.gp'], // Guitar Pro 3-5 files which are a proprietary binary format from Arobas Music
+              'application/zip': ['.gp'], // Guitar Pro 7 files which are a zip archive storing the music information as XML
+              'application/xml': ['.gpx', '.cap', '.xml'], // Guitar Pro 6 files (.gpx), CapXML files (.cap) and MusicXML files (.xml)
+              'text/plain': ['.txt'], // alphaTex
+            }
+          }],
+          excludeAcceptAllOption: true,
+          multiple: false,
+        });
+        const file = await fileHandle.getFile();
+
+        // upload file
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content || null;
         const formData = new FormData();
-        formData.append('file', event.target.files[0]);
-        const response = await axios.post(
-            generateUrl('/apps/guitarsongbook/upload'),
-            formData,
-            {headers: {'Content-Type': 'multipart/form-data'}}
-        )
-        const filename = response.data;
+        formData.append('file', file);
+        const response = await fetch(generateUrl('/apps/guitarsongbook/upload'), {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': csrf,
+          },
+          body: formData,
+        });
+        if (!response.ok) {  // status ist nicht 200-299?
+          const isJson = response.headers.get('content-type')?.includes('application/json');
+          const message = isJson ? await response.json() : `An error has occured: ${response.status}`;
+          throw new Error(message);
+        }
+        const filename = await response.json();
+
+        // open file
         alert(filename)
-        //api.load('load/' + encodeURIComponent(song));
+        //api.load('load/' + encodeURIComponent(filename));
       }
       catch (e) {
         console.log(e.response ? e.response.data : e.message)
         showError(t('guitarsongbook', 'Could not upload the file.'))
       }
       this.uploading = false
-    },
+    }
   },
 }
 </script>
 
 <style>
-  div.upload {
-    display: flex;
-    align-items: center;
-    flex: 1 1 auto;
-    margin: 4px 0;
-    padding-right: 14px;
-  }
-  input[type="file"] {
-    display: none;
-  }
-  label.upload-input {
-    display: flex;
-    /*font-size: var(--default-font-size);*/
-    /*color: var(--color-main-text);*/
-    /*margin: 0;*/
-    padding: 4px 12px;
-    height: 36px !important;
-    width: 100%;
-    font-family: var(--font-face);
-    color: var(--color-text);
-    background-color: var(--color-main-background);
-    opacity: .7;
-    border: 2px solid var(--color-border-maxcontrast);
-    border-radius: var(--border-radius-large);
-    text-overflow: ellipsis;
-    cursor: pointer;
-    -webkit-appearance: textfield !important;
-    -moz-appearance: textfield !important;
-  }
-  label.upload-input:focus:not([disabled]), label.upload-input:hover:not([disabled]) {
-    opacity: 1;
-    border-color: var(--color-primary-element);
-  }
-  .upload-icon {
-    padding: 0 6px 0 6px;
-  }
 </style>

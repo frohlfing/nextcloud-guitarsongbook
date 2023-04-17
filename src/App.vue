@@ -13,7 +13,9 @@
           button-id="new-guitarsongbook-button"
           button-class="icon-add"
           @click="newNote">
-        <template #icon>+</template>
+        <template #icon>
+          <PlusIcon :size="20" />
+        </template>
       </NcAppNavigationNew>
       <ul>
 				<NcAppNavigationItem v-for="note in notes"
@@ -82,6 +84,7 @@ import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
 import AlphaTab from './components/AlphaTab'
 import FileUpload from './components/FileUpload'
+import PlusIcon from 'vue-material-design-icons/Plus'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -99,6 +102,7 @@ export default {
 		NcActionInput,
 		AlphaTab,
     FileUpload,
+    PlusIcon,
 	},
 	data() {
 		return {
