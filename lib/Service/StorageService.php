@@ -1,6 +1,7 @@
 <?php
 namespace OCA\GuitarSongbook\Service;
 
+use Exception;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\IUserSession;
@@ -31,7 +32,7 @@ class StorageService {
         return '/Songs';
     }
 
-    public function getFullPath(string $song): string
+    public function getFullPath(string $song = ''): string
     {
         /** @noinspection PhpUndefinedClassInspection */
         $dataPath = \OC::$SERVERROOT . '/data';

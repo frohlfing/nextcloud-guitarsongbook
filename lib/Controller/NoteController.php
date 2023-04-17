@@ -52,8 +52,7 @@ class NoteController extends Controller {
 	/**
 	 * @NoAdminRequired
 	 */
-	public function update(int $id, string $title,
-						   string $content): DataResponse {
+	public function update(int $id, string $title, string $content): DataResponse {
 		return $this->handleNotFound(function () use ($id, $title, $content) {
 			return $this->service->update($id, $title, $content, $this->userId);
 		});

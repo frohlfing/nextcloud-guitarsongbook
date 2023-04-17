@@ -6,13 +6,16 @@
     -->
 	<NcContent app-name="guitarsongbook">
 		<NcAppNavigation>
+      <FileUpload/>
 			<NcAppNavigationNew v-if="!loading"
-				:text="t('guitarsongbook', 'New note')"
-				:disabled="false"
-				button-id="new-guitarsongbook-button"
-				button-class="icon-add"
-				@click="newNote" />
-			<ul>
+          :text="t('guitarsongbook', 'New note')"
+          :disabled="false"
+          button-id="new-guitarsongbook-button"
+          button-class="icon-add"
+          @click="newNote">
+        <template #icon>+</template>
+      </NcAppNavigationNew>
+      <ul>
 				<NcAppNavigationItem v-for="note in notes"
 					:key="note.id"
 					:title="note.title ? note.title : t('guitarsongbook', 'New note')"
@@ -37,7 +40,7 @@
 			<div class="controls-wrapper">
 				<div data-v-e345c782="" class="location-wrapper">
 					<h2 class="location">
-						Neuen Song anlegen
+						Neuen Song anlegen!
 					</h2>
 				</div>
 			</div>
@@ -76,7 +79,9 @@ import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationI
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
+import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
 import AlphaTab from './components/AlphaTab'
+import FileUpload from './components/FileUpload'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -91,7 +96,9 @@ export default {
 		NcAppNavigationNew,
 		NcAppContent,
 		NcActionButton,
+		NcActionInput,
 		AlphaTab,
+    FileUpload,
 	},
 	data() {
 		return {
@@ -132,7 +139,7 @@ export default {
 			this.notes = response.data
 		} catch (e) {
 			console.error(e)
-			showError(t('notestutorial', 'Could not fetch notes'))
+			showError(t('guitarsongbook', 'Could not fetch notes'))
 		}
 		this.loading = false
 	},
@@ -202,7 +209,7 @@ export default {
 				this.currentNoteId = response.data.id
 			} catch (e) {
 				console.error(e)
-				showError(t('notestutorial', 'Could not create the note'))
+				showError(t('guitarsongbook', 'Could not create the note'))
 			}
 			this.updating = false
 		},
@@ -217,7 +224,7 @@ export default {
 				await axios.put(generateUrl(`/apps/guitarsongbook/notes/${note.id}`), note)
 			} catch (e) {
 				console.error(e)
-				showError(t('notestutorial', 'Could not update the note'))
+				showError(t('guitarsongbook', 'Could not update the note'))
 			}
 			this.updating = false
 		},

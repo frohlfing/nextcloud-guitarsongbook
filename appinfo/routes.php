@@ -32,6 +32,7 @@ return [
 	'routes' => [
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
 		['name' => 'page#load', 'url' => '/load/{filename}', 'verb' => 'GET'],
+		['name' => 'page#upload', 'url' => '/upload', 'verb' => 'POST'],
 		['name' => 'note_api#preflighted_cors', 'url' => '/api/0.1/{path}',
 			'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']]
 	]
