@@ -46,7 +46,14 @@ export default {
       //setTimeout(function(){self.rendering = false}, 2000)
       this.rendering = false
     })
+    api.scoreLoaded.on((score) => {
+      this.$emit('score-loaded', score);
+    })
     this.api = api
+  },
+  methods: {
+    //xy() {
+    //},
   },
   watch: {
     filename(newFilename) {

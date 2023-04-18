@@ -1,0 +1,2 @@
+see ../3rdparty/alphatab/LICENSE
+and ../3rdparty/alphatab/soundfont/LICENSE

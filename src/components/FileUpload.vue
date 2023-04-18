@@ -31,27 +31,6 @@ export default {
     }
   },
   methods: {
-    // async uploadFile(event) {
-    //   this.uploading = true
-    //   try {
-    //     const formData = new FormData();
-    //     formData.append('file', event.target.files[0]);
-    //     const response = await axios.post(
-    //         generateUrl('/apps/guitarsongbook/upload'),
-    //         formData,
-    //         {headers: {'Content-Type': 'multipart/form-data'}}
-    //     )
-    //     const filename = response.data;
-    //     alert(filename)
-    //     //api.load('load/' + encodeURIComponent(song));
-    //   }
-    //   catch (e) {
-    //     console.log(e.response ? e.response.data : e.message)
-    //     showError(t('guitarsongbook', 'Could not upload the file.'))
-    //   }
-    //   this.uploading = false
-    // },
-
     // Upload mit File System Access API
     // File System Access API: https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API
     // How to Use Fetch: https://dmitripavlutin.com/javascript-fetch-async-await/

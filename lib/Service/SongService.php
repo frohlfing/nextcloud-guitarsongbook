@@ -3,13 +3,16 @@ namespace OCA\GuitarSongbook\Service;
 
 use Exception;
 use OCP\AppFramework\Http\StreamResponse;
+use OCP\IL10N;
 
 class SongService {
 
+    private IL10N $l;
     private StorageService $storage;
 
-    public function __construct(StorageService $storage)
+    public function __construct(IL10N $l, StorageService $storage)
     {
+        $this->l = $l;
         $this->storage = $storage;
     }
 
@@ -24,15 +27,15 @@ class SongService {
         // Validate
         $error = '';
 //        if (file_exists($fullname)) {
-//            throw new Exception('File already exists.');
+//            throw new Exception($this->l->t('File already exists.'));
 //        }
 
-        if ($file['size'] > 500000) {
-            throw new Exception('Sorry, your file is too large.');
+        if ($file['size'] > 1) {
+            throw new Exception($this->l->t('Sorry, your file is too large.'));
         }
 
         if (!move_uploaded_file($file['tmp_name'], $fullname)) {
-            throw new Exception('There was an error uploading your file.');
+            throw new Exception($this->l->t('There was an error uploading your file.'));
         }
 
         return $filename;

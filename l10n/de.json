@@ -1,0 +1,8 @@
+{"translations": {
+
+    "// SongService": "",
+    "File already exists.": "Die Datei existiert bereits.",
+    "Sorry, your file is too large.": "Sorry, die Datei ist zu groß.",
+    "There was an error uploading your file.": "Beim Hochladen deiner Datei ist ein Fehler aufgetreten."
+
+}, "pluralForm" :"nplurals=2; plural=(n != 1);"}

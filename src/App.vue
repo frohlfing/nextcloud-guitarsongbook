@@ -6,9 +6,8 @@
     -->
 	<NcContent app-name="guitarsongbook">
 		<NcAppNavigation>
-      <NavFileUpload @uploaded="fileUploaded"/>
 			<NcAppNavigationNew v-if="!loading"
-          :text="t('guitarsongbook', 'New note')"
+          :text="t('guitarsongbook', 'Create song')"
           :disabled="false"
           button-id="new-guitarsongbook-button"
           button-class="icon-add"
@@ -17,22 +16,23 @@
           <PlusIcon :size="20" />
         </template>
       </NcAppNavigationNew>
+      <NavFileUpload @uploaded="fileUploaded"/>
       <ul>
 				<NcAppNavigationItem v-for="note in notes"
 					:key="note.id"
-					:title="note.title ? note.title : t('guitarsongbook', 'New note')"
+					:title="note.title ? note.title : t('guitarsongbook', 'New song')"
 					:class="{active: currentNoteId === note.id}"
 					@click="openNote(note)">
-					<template slot="actions">
+					<template #actions>
 						<NcActionButton v-if="note.id === -1"
 							icon="icon-close"
 							@click="cancelNewNote(note)">
-							{{ t('guitarsongbook', 'Cancel note creation') }}
+							{{ t('guitarsongbook', 'Discard') }}
 						</NcActionButton>
 						<NcActionButton v-else
 							icon="icon-delete"
 							@click="deleteNote(note)">
-							{{ t('guitarsongbook', 'Delete note') }}
+							{{ t('guitarsongbook', 'Delete') }}
 						</NcActionButton>
 					</template>
 				</NcAppNavigationItem>
@@ -42,11 +42,11 @@
 			<div class="controls-wrapper">
 				<div class="location-wrapper">
 					<h2 class="location">
-						Neuen Song anlegen!
+            {{ t('guitarsongbook', 'New song') }}
 					</h2>
 				</div>
         <NcButton
-            v-if="false"
+            v-if="true"
             type="primary"
             :aria-label="t('guitarsongbook', 'Edit')"
             @click=""
@@ -81,37 +81,39 @@
               v-if="true"
               :icon="false ? 'icon-loading-small' : 'icon-history'"
               class="action-button"
-              :aria-label="t('guitarsongbook', 'Reload song')"
+              :aria-label="t('guitarsongbook', 'Reload')"
               @click=""
           >
-            {{ t("guitarsongbook", "Reload song") }}
+            {{ t("guitarsongbook", "Reload") }}
           </NcActionButton>
           <NcActionButton
               v-if="true"
               class="action-button"
-              :aria-label="t('guitarsongbook', 'Print song')"
+              :aria-label="t('guitarsongbook', 'Print')"
               @click=""
           >
-            <template #icon=""><printer-icon :size="20" /></template>
-            {{ t('guitarsongbook', 'Print song') }}
+            <template #icon="">
+              <printer-icon :size="20" />
+            </template>
+            {{ t('guitarsongbook', 'Print') }}
           </NcActionButton>
           <NcActionButton
               v-if="true"
               icon="icon-delete"
               class="action-button"
-              :aria-label="t('guitarsongbook', 'Delete song')"
+              :aria-label="t('guitarsongbook', 'Delete')"
               @click=""
           >
-            {{ t('guitarsongbook', 'Delete song') }}
+            {{ t('guitarsongbook', 'Delete') }}
           </NcActionButton>
           <ActionFileUpload @uploaded="fileUploaded"/>
           <NcActionButton
               v-if="true"
               class="action-button"
-              :aria-label="t('guitarsongbook', 'Abort editing')"
+              :aria-label="t('guitarsongbook', 'Cancel')"
               @click=""
           >
-            {{ t('guitarsongbook', 'Abort editing') }}
+            {{ t('guitarsongbook', 'Cancel') }}
             <template #icon>
               <NcLoadingIcon
                   v-if="false"
@@ -127,6 +129,7 @@
 				<AlphaTab
             :filename="filename"
             :tex="alphaTex"
+            :@score-loaded="scoreLoaded"
         />
 				<div v-if="currentNote">
 					<input ref="title"
@@ -144,7 +147,7 @@
 					<div class="icon-file" />
 					<h2>
 						{{
-							t('guitarsongbook', 'Create a note to get started') }}
+							t('guitarsongbook', 'Create a song to get started!') }}
 					</h2>
 				</div>
 			</div>
@@ -210,6 +213,7 @@ export default {
 			loading: true,
       filename: null,
       alphaTex: null,
+      score: null,
 		}
 	},
 	computed: {
@@ -255,8 +259,14 @@ export default {
       //alert(filename)
       this.filename = filename
     },
-		/**
-		 * Create a new note and focus the note content field automatically
+
+    scoreLoaded(score) {
+      this.score = score
+      console.log('scoreLoaded', score)
+    },
+
+    /**
+		 * Create a new song and focus the note content field automatically
 		 *
 		 * @param {object} note Note object
 		 */
@@ -271,7 +281,7 @@ export default {
 		},
 		/**
 		 * Action tiggered when clicking the save button
-		 * create a new note or save
+		 * create a new song or save
 		 */
 		saveNote() {
 			if (this.currentNoteId === -1) {
@@ -281,7 +291,7 @@ export default {
 			}
 		},
 		/**
-		 * Create a new note and focus the note content field automatically
+		 * Create a new song and focus the note content field automatically
 		 * The note is not yet saved, therefore an id of -1 is used until it
 		 * has been persisted in the backend
 		 */
@@ -299,14 +309,14 @@ export default {
 			}
 		},
 		/**
-		 * Abort creating a new note
+		 * Abort creating a new song
 		 */
 		cancelNewNote() {
 			this.notes.splice(this.notes.findIndex((note) => note.id === -1), 1)
 			this.currentNoteId = null
 		},
 		/**
-		 * Create a new note by sending the information to the server
+		 * Create a new song by sending the information to the server
 		 *
 		 * @param {object} note Note object
 		 */
