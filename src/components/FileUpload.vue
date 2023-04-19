@@ -1,20 +1,29 @@
-<!--suppress CssUnresolvedCustomProperty -->
 <template>
-  <NcButton
-      :disabled="uploading"
-      type="secondary"
-      class="button"
-      @click="uploadFile($event)">
-    <template #icon>
-      <UploadIcon :size="20" />
-    </template>
-    {{ t('guitarsongbook', 'Upload Guitar Pro File') }}
-  </NcButton>
+  <div class="app-navigation-new">
+    <label class="upload-button">
+      <span class="upload-icon">
+        <LoadingIcon v-if="uploading" :size="20" class="animation-rotate" />
+        <slot name="icon">
+          <UploadIcon v-if="!uploading" :size="20"/>
+        </slot>
+      </span>
+      <input
+          :id="buttonId"
+          type="file"
+          :accept="accept"
+          :disabled="uploading || disabled"
+          @change="uploadFile($event)"/>
+      <span class="upload-text">
+        {{text}}
+      </span>
+    </label>
+  </div>
 </template>
 
-<!--suppress ExceptionCaughtLocallyJS, JSUnresolvedFunction_, JSCheckFunctionSignatures_ -->
+<!--suppress ExceptionCaughtLocallyJS, JSCheckFunctionSignatures -->
 <script>
-import NcButton from '@nextcloud/vue/dist/Components/NcButton'
+import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
+import LoadingIcon from 'vue-material-design-icons/Loading'
 import UploadIcon from 'vue-material-design-icons/Upload'
 import { generateUrl } from '@nextcloud/router'
 import { showError } from '@nextcloud/dialogs'
@@ -22,8 +31,29 @@ import { showError } from '@nextcloud/dialogs'
 export default {
   name: 'FileUpload',
   components: {
-    NcButton,
+    NcAppNavigationNew,
+    LoadingIcon,
     UploadIcon,
+  },
+  props: {
+    buttonId: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    disabled: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    text: {
+      type: String,
+      required: true,
+    },
+    accept: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -31,32 +61,11 @@ export default {
     }
   },
   methods: {
-    // Upload mit File System Access API
-    // File System Access API: https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API
-    // How to Use Fetch: https://dmitripavlutin.com/javascript-fetch-async-await/
-    // MIME types: https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
-    // alphaTab file importers: https://www.alphatab.net/docs/introduction#the-file-importers
-    async uploadFile()
+    async uploadFile(event)
     {
       this.uploading = true
       try {
-        // select a local file
-        const [fileHandle] = await window.showOpenFilePicker({
-          types: [{
-            description: 'GuitarPro, alphaTex, CapXML, MusicXML',
-            accept: {
-              'application/octet-stream': ['.gp3', '.gp4', '.gp5', '.gp'], // Guitar Pro 3-5 files which are a proprietary binary format from Arobas Music
-              'application/zip': ['.gp'], // Guitar Pro 7 files which are a zip archive storing the music information as XML
-              'application/xml': ['.gpx', '.cap', '.xml'], // Guitar Pro 6 files (.gpx), CapXML files (.cap) and MusicXML files (.xml)
-              'text/plain': ['.txt'], // alphaTex
-            }
-          }],
-          excludeAcceptAllOption: true,
-          multiple: false,
-        });
-        const file = await fileHandle.getFile();
-
-        // upload file
+        const file = event.target.files[0];
         const csrf = document.querySelector('meta[name="csrf-token"]')?.content || null;
         const formData = new FormData();
         formData.append('file', file);
@@ -85,5 +94,50 @@ export default {
 }
 </script>
 
+<style lang="scss" scoped>
+.app-navigation-new {
+  display: block;
+  padding: calc(var(--default-grid-baseline, 4px) * 2);
+  button {
+    width: 100%;
+  }
+}
+</style>
+
+<!--suppress CssUnresolvedCustomProperty -->
 <style>
+input[type="file"] {
+  display: none;
+}
+label.upload-button {
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 22px;
+  background-color: var(--color-primary-light);
+  font-weight: bold;
+  text-overflow: ellipsis;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+label.upload-button:focus:not([disabled]), label.upload-button:hover:not([disabled]) {
+  background-color: var(--color-primary-light-hover);
+}
+span.upload-icon {
+  padding: 0 6px 0 6px;
+  height: 44px;
+  width: 44px;
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+span.upload-text {
+  cursor: pointer;
+}
 </style>

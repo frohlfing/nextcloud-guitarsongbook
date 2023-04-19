@@ -30,7 +30,7 @@ class SongService {
 //            throw new Exception($this->l->t('File already exists.'));
 //        }
 
-        if ($file['size'] > 1) {
+        if ($file['size'] > 500000) {
             throw new Exception($this->l->t('Sorry, your file is too large.'));
         }
 

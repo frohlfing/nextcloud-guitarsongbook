@@ -16,7 +16,10 @@
           <PlusIcon :size="20" />
         </template>
       </NcAppNavigationNew>
-      <NavFileUpload @uploaded="fileUploaded"/>
+      <FileUpload
+          :text="t('guitarsongbook', 'Upload Guitar Pro File')"
+          accept=".gp3, .gp4, .gp5, .gpx, .gp, .cap, .xml, .txt"
+          @uploaded="fileUploaded"/>
       <ul>
 				<NcAppNavigationItem v-for="note in notes"
 					:key="note.id"
@@ -106,7 +109,6 @@
           >
             {{ t('guitarsongbook', 'Delete') }}
           </NcActionButton>
-          <ActionFileUpload @uploaded="fileUploaded"/>
           <NcActionButton
               v-if="true"
               class="action-button"
@@ -125,11 +127,13 @@
         </NcActions>
 			</div>
 			<div class="main-wrapper">
-        <FileUpload @uploaded="fileUploaded"/>
+
+        <div class="at-track-list"></div>
+
 				<AlphaTab
             :filename="filename"
             :tex="alphaTex"
-            :@score-loaded="scoreLoaded"
+            @score-loaded="scoreLoaded"
         />
 				<div v-if="currentNote">
 					<input ref="title"
@@ -166,8 +170,6 @@ import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import AlphaTab from './components/AlphaTab'
-import NavFileUpload from './components/NavFileUpload'
-import ActionFileUpload from './components/ActionFileUpload'
 import FileUpload from './components/FileUpload'
 import NcLoadingIcon from "@nextcloud/vue/dist/Components/NcLoadingIcon"
 import PlusIcon from 'vue-material-design-icons/Plus'
@@ -194,8 +196,6 @@ export default {
 		NcActionInput,
 		NcButton,
 		AlphaTab,
-    NavFileUpload,
-    ActionFileUpload,
     FileUpload,
     NcLoadingIcon,
     PlusIcon,
@@ -261,8 +261,13 @@ export default {
     },
 
     scoreLoaded(score) {
-      this.score = score
       console.log('scoreLoaded', score)
+      const trackList = document.querySelector(".at-track-list");
+      // trackItem.onclick = (e) => {
+      //   e.stopPropagation();
+      //   api.renderTracks([track]);
+      // };
+      this.score = score
     },
 
     /**
