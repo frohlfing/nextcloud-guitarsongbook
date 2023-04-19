@@ -1,22 +1,22 @@
 <template>
-  <div class="app-navigation-new">
-    <label class="upload-button">
-      <span class="upload-icon">
-        <LoadingIcon v-if="uploading" :size="20" class="animation-rotate" />
-        <slot name="icon">
-          <UploadIcon v-if="!uploading" :size="20"/>
-        </slot>
-      </span>
-      <input
-          :id="buttonId"
-          type="file"
-          :accept="accept"
-          :disabled="uploading || disabled"
-          @change="uploadFile($event)"/>
-      <span class="upload-text">
-        {{text}}
-      </span>
-    </label>
+  <div>
+  <input
+      :id="buttonId"
+      ref="input"
+      type="file"
+      :accept="accept"
+      class="hidden-visually"
+      :disabled="uploading || disabled"
+      @change="uploadFile($event)"/>
+  <NcAppNavigationNew
+      :text="text"
+      :disabled="disabled"
+      @click="$refs.input.click()">
+    <template #icon>
+      <LoadingIcon v-if="uploading" :size="20" class="animation-rotate" />
+      <UploadIcon v-if="!uploading" :size="20" />
+    </template>
+  </NcAppNavigationNew>
   </div>
 </template>
 
@@ -94,50 +94,9 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-.app-navigation-new {
-  display: block;
-  padding: calc(var(--default-grid-baseline, 4px) * 2);
-  button {
-    width: 100%;
-  }
-}
-</style>
-
 <!--suppress CssUnresolvedCustomProperty -->
 <style>
 input[type="file"] {
   display: none;
-}
-label.upload-button {
-  display: flex;
-  overflow: hidden;
-  position: relative;
-  min-height: 44px;
-  min-width: 44px;
-  border-radius: 22px;
-  background-color: var(--color-primary-light);
-  font-weight: bold;
-  text-overflow: ellipsis;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-label.upload-button:focus:not([disabled]), label.upload-button:hover:not([disabled]) {
-  background-color: var(--color-primary-light-hover);
-}
-span.upload-icon {
-  padding: 0 6px 0 6px;
-  height: 44px;
-  width: 44px;
-  min-height: 44px;
-  min-width: 44px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-}
-span.upload-text {
-  cursor: pointer;
 }
 </style>
