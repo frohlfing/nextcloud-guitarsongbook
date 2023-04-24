@@ -1,26 +1,26 @@
 <template>
-  <div>
-  <input
-      :id="buttonId"
-      ref="input"
-      type="file"
-      :accept="accept"
-      class="hidden-visually"
-      :disabled="uploading || disabled"
-      @change="uploadFile($event)"/>
-  <NcAppNavigationNew
-      :text="text"
-      :disabled="disabled"
-      @click="$refs.input.click()">
-    <template #icon>
-      <LoadingIcon v-if="uploading" :size="20" class="animation-rotate" />
-      <UploadIcon v-if="!uploading" :size="20" />
-    </template>
-  </NcAppNavigationNew>
+  <div class="file-upload">
+    <input
+        :id="buttonId"
+        ref="input"
+        type="file"
+        :accept="accept"
+        class="hidden-visually"
+        :disabled="uploading || disabled"
+        @change="upload($event)"/>
+    <NcAppNavigationNew
+        :text="text"
+        :disabled="disabled"
+        @click="$refs.input.click()">
+      <template #icon>
+        <LoadingIcon v-if="uploading" :size="20" class="animation-rotate" />
+        <UploadIcon v-if="!uploading" :size="20" />
+      </template>
+    </NcAppNavigationNew>
   </div>
 </template>
 
-<!--suppress ExceptionCaughtLocallyJS, JSCheckFunctionSignatures -->
+<!--suppress ExceptionCaughtLocallyJS, JSCheckFunctionSignatures, JSUnusedLocalSymbols -->
 <script>
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
 import LoadingIcon from 'vue-material-design-icons/Loading'
@@ -38,13 +38,7 @@ export default {
   props: {
     buttonId: {
       type: String,
-      required: false,
       default: '',
-    },
-    disabled: {
-      type: Boolean,
-      required: false,
-      default: false,
     },
     text: {
       type: String,
@@ -54,6 +48,15 @@ export default {
       type: String,
       required: true,
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: {
+    uploaded(filename) {
+      return true
+    }
   },
   data() {
     return {
@@ -61,18 +64,17 @@ export default {
     }
   },
   methods: {
-    async uploadFile(event)
-    {
+    async upload(event) {
       this.uploading = true
       try {
         const file = event.target.files[0];
-        const csrf = document.querySelector('meta[name="csrf-token"]')?.content || null;
+        //const csrf = document.querySelector('meta[name="csrf-token"]')?.content || null;
         const formData = new FormData();
         formData.append('file', file);
         const response = await fetch(generateUrl('/apps/guitarsongbook/upload'), {
           method: 'POST',
           headers: {
-            'X-CSRF-TOKEN': csrf,
+            //'X-CSRF-TOKEN': csrf,
           },
           body: formData,
         });
@@ -96,7 +98,7 @@ export default {
 
 <!--suppress CssUnresolvedCustomProperty -->
 <style>
-input[type="file"] {
+div.file-upload input[type="file"] {
   display: none;
 }
 </style>

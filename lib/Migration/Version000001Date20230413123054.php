@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpUnused */
 declare(strict_types=1);
 // SPDX-FileCopyrightText: Frank Rohlfing <mail@frank-rohlfing.de>
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -8,10 +9,15 @@ declare(strict_types=1);
  * s.a. https://docs.nextcloud.com/server/latest/developer_manual/basics/storage/migrations.html#console-commands
  *
  * Migration ausführen:
- * 1) sudo -u daemon php ./occ migrations:execute guitarsongbook 000001Date20230413123054
+ * 1) php ./occ migrations:execute guitarsongbook 000001Date20230413123054
+ *    oder so als daemon:
+ *      sudo -u daemon php ./occ migrations:execute guitarsongbook 000001Date20230413123054
  * 2) evtl. notwendig: composer dump-autoload
  *
  * Die Migration wird beim Reload der App ausgeführt, wenn die App-Version erhöht wurde (s. ppinfo/info.xml).
+ *
+ * Table management tips:
+ * https://docs.nextcloud.com/server/latest/developer_manual/basics/storage/database.html#table-management-tips
  */
 
 namespace OCA\GuitarSongbook\Migration;
@@ -29,9 +35,14 @@ class Version000001Date20230413123054 extends SimpleMigrationStep {
 	 * @param array $options
 	 * @return null|ISchemaWrapper
 	 */
-	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
+	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
+    {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
+
+        // ---------------------------------------
+        // guitarsongbook
+        // ---------------------------------------
 
 		if ($schema->hasTable('guitarsongbook')) {
             $table = $schema->getTable('guitarsongbook');
@@ -43,47 +54,77 @@ class Version000001Date20230413123054 extends SimpleMigrationStep {
                 'notnull' => true,
             ]);
             $table->setPrimaryKey(['id']);
+
+            $table->addColumn('name', 'string', [
+                'notnull' => true,
+                'length' => 128
+            ]);
+            $table->addIndex(['name'], 'guitarsongbook_name_index');
+
+            $table->addColumn('uid', 'string', [ // user id, e.g. "admin"
+                'notnull' => true,
+                'length' => 64,
+            ]);
+            $table->addIndex(['uid'], 'guitarsongbook_uid_index');
         }
 
-        // Columns
+        // Song Information (optional)
+        foreach (['title', 'artist', 'subtitle', 'album', 'words', 'music', 'copyright', 'transcriber', 'notice', 'instructions'] as $column) {
+            if (!$table->hasColumn($column)) {
+                $table->addColumn($column, 'string', [
+                    'notnull' => false,
+                    'length' => 255
+                ]);
+            }
+        }
 
-        if (!$table->hasColumn('title')) {
-            $table->addColumn('title', 'string', [
-                'notnull' => true,
-                'length' => 200
+        if (!$table->hasColumn('created')) {
+            $table->addColumn('created', 'datetime', [
+                'notnull' => false,
             ]);
         }
 
-        if (!$table->hasColumn('user_id')) {
-            $table->addColumn('user_id', 'string', [
-                'notnull' => true,
-                'length' => 200,
+        if (!$table->hasColumn('updated')) {
+            $table->addColumn('updated', 'datetime', [
+                'notnull' => false,
             ]);
         }
 
-        if (!$table->hasColumn('content')) {
-            $table->addColumn('content', 'text', [
+        // ---------------------------------------
+        // guitarsongbook_shots
+        // ---------------------------------------
+
+        if ($schema->hasTable('guitarsongbook_shots')) { // Don’t use table name longer than 23 characters. => ok!
+            $table = $schema->getTable('guitarsongbook_shots');
+        }
+        else {
+            $table = $schema->createTable('guitarsongbook_shots');
+            $table->addColumn('id', 'integer', [
+                'autoincrement' => true,
                 'notnull' => true,
-                'default' => ''
+            ]);
+            $table->setPrimaryKey(['id']);
+
+            $table->addColumn('song_id', 'integer', [
+                'notnull' => true,
+            ]);
+            $table->addIndex(['song_id'], 'guitarsongbook_shots_index');
+
+            $table->addColumn('index', 'integer', [
+                'notnull' => true,
+            ]);
+
+            $table->addColumn('url', 'string', [
+                'notnull' => true,
+                'length' => 255
             ]);
         }
 
-//        if (!$table->hasColumn('date_created')) {
-//            $table->addColumn('date_created', 'datetime_immutable', [
-//                'notnull' => false,
-//            ]);
-//        }
-//
-//        if (!$table->hasColumn('date_modified')) {
-//            $table->addColumn('date_modified', 'datetime_immutable', [
-//                'notnull' => false,
-//            ]);
-//        }
-
-        // Index
-
-        if (!$table->hasIndex('guitarsongbook_user_id_index')) {
-            $table->addIndex(['user_id'], 'guitarsongbook_user_id_index');
+        if (!$table->hasColumn('text')) {
+            $table->addColumn('text', 'string', [
+                'notnull' => false,
+                'length' => 255
+            ]);
         }
 
 		return $schema;

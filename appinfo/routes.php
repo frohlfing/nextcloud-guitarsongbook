@@ -15,25 +15,28 @@ declare(strict_types=1);
 /**
  * Eine Resource hat folgende Routen:
  * 'routes' => [
- *    ['name' => 'page#index',   'url' => '/',           'verb' => 'GET'],
- *    ['name' => 'note#index',   'url' => '/notes',      'verb' => 'GET'],
- *    ['name' => 'note#show',    'url' => '/notes/{id}', 'verb' => 'GET'],
- *    ['name' => 'note#create',  'url' => '/notes',      'verb' => 'POST'],
- *    ['name' => 'note#update',  'url' => '/notes/{id}', 'verb' => 'PUT'],
- *    ['name' => 'note#destroy', 'url' => '/notes/{id}', 'verb' => 'DELETE']
+ *    ['name' => 'song#index',   'url' => '/songs',      'verb' => 'GET'],
+ *    ['name' => 'song#show',    'url' => '/songs/{id}', 'verb' => 'GET'],
+ *    ['name' => 'song#create',  'url' => '/songs',      'verb' => 'POST'],
+ *    ['name' => 'song#update',  'url' => '/songs/{id}', 'verb' => 'PUT'],
+ *    ['name' => 'song#destroy', 'url' => '/songs/{id}', 'verb' => 'DELETE']
  *  ]
  */
 
 return [
 	'resources' => [
-		'note' => ['url' => '/notes'],
+		'note'     => ['url' => '/notes'],
 		'note_api' => ['url' => '/api/0.1/notes']
 	],
 	'routes' => [
-		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
-		['name' => 'page#load', 'url' => '/load/{filename}', 'verb' => 'GET'],
-		['name' => 'page#upload', 'url' => '/upload', 'verb' => 'POST'],
-		['name' => 'note_api#preflighted_cors', 'url' => '/api/0.1/{path}',
-			'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']]
+        // PageController
+		['name' => 'page#index',  'url' => '/',                'verb' => 'GET'],
+
+        // FileController
+		['name' => 'file#load',   'url' => '/load/{filename}', 'verb' => 'GET'],
+		['name' => 'file#upload', 'url' => '/upload',          'verb' => 'POST'],
+
+        // SongApiController
+		['name' => 'note_api#preflighted_cors', 'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']]
 	]
 ];

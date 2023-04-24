@@ -1,9 +1,10 @@
 <?php
 namespace OCA\GuitarSongbook\Service;
 
-use Exception;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
 use OCP\IUserSession;
 
 class StorageService {
@@ -20,6 +21,8 @@ class StorageService {
     /**
      * Get the home folder name of the current user.
      * e.g.: /admin/files
+     *
+     * @throws NotPermittedException
      */
     private function getHomeFolder(): Folder
     {
@@ -27,18 +30,24 @@ class StorageService {
         return $this->rootFolder->getUserFolder($user->getUID());
     }
 
-    public function getSubPath(): string
+    public function getSongsFolderName(): string
     {
         return '/Songs';
     }
 
-    public function getFullPath(string $song = ''): string
+    /**
+     * @param string $folder The folder must exist in the song directory
+     * @return string
+     * @throws NotFoundException
+     * @throws NotPermittedException
+     */
+    public function getFullPath(string $folder = ''): string
     {
         /** @noinspection PhpUndefinedClassInspection */
-        $dataPath = \OC::$SERVERROOT . '/data';
+        $dataPath = OC::$SERVERROOT . '/data';
         $homeFolder = $this->getHomeFolder();
-        $subPath = $this->getSubPath();
+        $songsFolderName = $this->getSongsFolderName();
 
-        return $dataPath . $homeFolder->get($subPath . '/' . $song)->getPath();
+        return $dataPath . $homeFolder->get($songsFolderName . '/' . $folder)->getPath();
     }
 }

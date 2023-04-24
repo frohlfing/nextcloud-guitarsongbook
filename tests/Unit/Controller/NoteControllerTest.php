@@ -12,10 +12,10 @@ use OCP\IRequest;
 
 use OCA\GuitarSongbook\Service\NoteNotFound;
 use OCA\GuitarSongbook\Service\NoteService;
-use OCA\GuitarSongbook\Controller\NoteController;
+use OCA\GuitarSongbook\Controller\SongController;
 
 class NoteControllerTest extends TestCase {
-	protected NoteController $controller;
+	protected SongController $controller;
 	protected string $userId = 'john';
 	protected $service;
 	protected $request;
@@ -25,7 +25,7 @@ class NoteControllerTest extends TestCase {
 		$this->service = $this->getMockBuilder(NoteService::class)
 			->disableOriginalConstructor()
 			->getMock();
-		$this->controller = new NoteController($this->request, $this->service, $this->userId);
+		$this->controller = new SongController($this->request, $this->service, $this->userId);
 	}
 
 	public function testUpdate(): void {

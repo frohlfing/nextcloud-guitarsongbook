@@ -1,3 +1,4 @@
+// noinspection SpellCheckingInspection,JSUnresolvedVariable
 OC.L10N.register("guitarsongbook",
 {
     // Common
@@ -12,17 +13,17 @@ OC.L10N.register("guitarsongbook",
     "New": "Neu",
 
     // App
-    "Guitar Songbook": "Gitarren Songbuch",
-    "A library for all your songs.": "Eine Bibliothek für all deine Lieder.",
-
-    // Navigation
+    "Create a song to get started!": "Erstelle einen Song, um loszulegen!",
     "Create song": "Song erstellen",
     "Upload Guitar Pro File": "Guitar Pro File hochladen",
     "New song": "Neuer Song",
     "Songbook settings": "Songbuch-Einstellungen",
-    "Create a song to get started!": "Erstelle einen Song, um loszulegen!",
 
-    // FileUpload, Errors
+    //"Song deleted" : "Song erfolgreich gelöscht.",
+    //"Saving failed" : "Speichern fehlgeschlagen",
+    //"Deleting failed" : "Löschen fehlgeschlagen",
+
+    // FileUpload
     "Could not upload the file.": "Die Datei konnte nicht hochgeladen werden.",
 },
 "nplurals=2; plural=(n != 1);");

@@ -11,10 +11,10 @@ use PHPUnit\Framework\TestCase;
 
 use OCA\GuitarSongbook\Db\Note;
 use OCA\GuitarSongbook\Db\NoteMapper;
-use OCA\GuitarSongbook\Controller\NoteController;
+use OCA\GuitarSongbook\Controller\SongController;
 
 class NoteIntegrationTest extends TestCase {
-	private NoteController $controller;
+	private SongController $controller;
 	private QBMapper $mapper;
 	private string $userId = 'john';
 
@@ -32,7 +32,7 @@ class NoteIntegrationTest extends TestCase {
 			return $this->createMock(IRequest::class);
 		});
 
-		$this->controller = $container->get(NoteController::class);
+		$this->controller = $container->get(SongController::class);
 		$this->mapper = $container->get(NoteMapper::class);
 	}
 

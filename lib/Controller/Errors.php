@@ -9,14 +9,17 @@ use Closure;
 
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
-
 use OCA\GuitarSongbook\Service\NoteNotFound;
 
-trait Errors {
-	protected function handleNotFound(Closure $callback): DataResponse {
+trait Errors
+{
+	protected function handleNotFound(Closure $callback): DataResponse
+    {
 		try {
 			return new DataResponse($callback());
-		} catch (NoteNotFound $e) {
+		}
+        /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (NoteNotFound $e) {
 			$message = ['message' => $e->getMessage()];
 			return new DataResponse($message, Http::STATUS_NOT_FOUND);
 		}

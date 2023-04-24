@@ -1,53 +1,103 @@
 <?php
+/** @noinspection PhpUnused */
+declare(strict_types=1);
+// SPDX-FileCopyrightText: Frank Rohlfing <mail@frank-rohlfing.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 namespace OCA\GuitarSongbook\Service;
 
 use Exception;
-use OCP\AppFramework\Http\StreamResponse;
-use OCP\IL10N;
 
-class SongService {
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
+use OCA\GuitarSongbook\Db\Song;
+use OCA\GuitarSongbook\Db\SongMapper;
 
-    private IL10N $l;
-    private StorageService $storage;
+class SongService
+{
+	private SongMapper $mapper;
 
-    public function __construct(IL10N $l, StorageService $storage)
+	public function __construct(SongMapper $mapper)
     {
-        $this->l = $l;
-        $this->storage = $storage;
-    }
+		$this->mapper = $mapper;
+	}
 
     /**
-     * @throws Exception
+     * @return list<Song>
+     * @noinspection PhpUnused
+     * @throws \OCP\DB\Exception
      */
-    public function saveUploadedFile($file): string
+	public function findAll(string $userId): array
     {
-        $filename = basename($file['name']);
-        $fullname = $this->storage->getFullPath() . '/' . $filename;
+		return $this->mapper->findAll($userId);
+	}
 
-        // Validate
-        $error = '';
-//        if (file_exists($fullname)) {
-//            throw new Exception($this->l->t('File already exists.'));
-//        }
-
-        if ($file['size'] > 500000) {
-            throw new Exception($this->l->t('Sorry, your file is too large.'));
-        }
-
-        if (!move_uploaded_file($file['tmp_name'], $fullname)) {
-            throw new Exception($this->l->t('There was an error uploading your file.'));
-        }
-
-        return $filename;
-    }
-
-//    public function getContent($song)
-//    {
-//        return file_get_contents($this->storage->getFullPath($song));
-//    }
-
-    public function file($song): StreamResponse
+	/**
+	 * @return never
+	 */
+	private function handleException(Exception $e)
     {
-        return new StreamResponse($this->storage->getFullPath($song));
-    }
+		if ($e instanceof DoesNotExistException ||
+			$e instanceof MultipleObjectsReturnedException) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            throw new SongNotFound($e->getMessage());
+		} else {
+			throw $e;
+		}
+	}
+
+    /**
+     * @throws SongNotFound
+     */
+    public function find(int $id, string $userId): Song
+    {
+		try {
+			return $this->mapper->find($id, $userId);
+
+			// in order to be able to plug in different storage backends like files
+            // for instance it is a good idea to turn storage related exceptions
+            // into service related exceptions so controllers and service users
+            // have to deal with only one type of exception
+		}
+        catch (Exception $e) {
+			$this->handleException($e);
+		}
+	}
+
+	public function create(string $title, string $content, string $userId): Song
+    {
+		$song = new Song();
+		$song->setTitle($title);
+		$song->setContent($content);
+		$song->setUserId($userId);
+		return $this->mapper->insert($song);
+	}
+
+	public function update(int $id, string $title, string $content, string $userId): Song
+    {
+		try {
+			$song = $this->mapper->find($id, $userId);
+			$song->setTitle($title);
+			$song->setContent($content);
+			return $this->mapper->update($song);
+		}
+        catch (Exception $e) {
+			$this->handleException($e);
+		}
+	}
+
+    /**
+     * @throws SongNotFound
+     */
+    public function delete(int $id, string $userId): Song
+    {
+		try {
+			$song = $this->mapper->find($id, $userId);
+			$this->mapper->delete($song);
+			return $song;
+		}
+        catch (Exception $e) {
+			$this->handleException($e);
+		}
+	}
 }

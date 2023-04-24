@@ -7,10 +7,12 @@ namespace OCA\GuitarSongbook\AppInfo;
 
 use OCP\AppFramework\App;
 
-class Application extends App {
+class Application extends App
+{
 	public const APP_ID = 'guitarsongbook';
 
-	public function __construct() {
+	public function __construct()
+    {
 		parent::__construct(self::APP_ID);
 	}
 }
