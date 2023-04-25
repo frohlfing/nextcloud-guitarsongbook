@@ -50,11 +50,72 @@
             <CogIcon :size="20" />
           </template>
         </NcAppNavigationNew>
-        <NcModal class="modal-settings"
-            v-if="modal"
+        <NcAppSettingsDialog
+            :open.sync="modal"
             @close="closeModal"
-            :title="t('guitarsongbook', 'Songbook settings')">
-          <div class="modal-settings-content">
+            :title="t('guitarsongbook', 'Songbook settings')"
+            :show-navigation="true">
+          <NcAppSettingsSection
+              id="settings-songs-folder"
+              :title="t('guitarsongbook', 'Songs folder')"
+              class="app-settings-section">
+            <fieldset>
+              <ul>
+                <li>
+                  <NcButton class="rescan" @click="rescan">
+                    <template #icon>
+                      <LoadingIcon v-if="scanningLibrary" />
+                      <ReloadIcon v-else />
+                    </template>
+                    {{ t("guitarsongbook", "Rescan library") }}
+                  </NcButton>
+                </li>
+                <li>
+                  <label class="settings-input">
+                    {{ t("guitarsongbook", "Songs folder") }}
+                  </label>
+                  <input
+                      type="text"
+                      :value="songsFolder"
+                      :placeholder="t('guitarsongbook', 'Please pick a folder')"
+                      @click="pickSongsFolder"/>
+                </li>
+                <li>
+                  <label class="settings-input">{{ t("guitarsongbook", "Update interval in minutes") }}</label>
+                  <input
+                      v-model="updateInterval"
+                      type="number"
+                      class="input settings-input"
+                      placeholder="0"/>
+                </li>
+              </ul>
+            </fieldset>
+          </NcAppSettingsSection>
+          <NcAppSettingsSection
+              id="settings-info-blocks"
+              :title="t('cookbook', 'Info blocks')"
+              class="app-settings-section">
+            <fieldset>
+              <legend class="settings-info">
+                {{ t("guitarsongbook", "Control which blocks of information are shown in the recipe view. If you do not use some features and find them distracting, you may hide them.") }}
+              </legend>
+              <ul>
+                <li>
+                  <input
+                      id="info-blocks-checkbox-preparation-time"
+                      v-model="visiblePreparationTime"
+                      type="checkbox"
+                      class="checkbox"
+                      value="1"
+                  />
+                  <label for="info-blocks-checkbox-preparation-time">
+                    {{ t("guitarsongbook", "Preparation time") }}
+                  </label>
+                </li>
+              </ul>
+            </fieldset>
+          </NcAppSettingsSection>
+          <div class="buttom-form">
             <h2>Please enter your name</h2>
             <NcTextField
                 label="First Name"
@@ -69,7 +130,7 @@
               Submit
             </NcButton>
           </div>
-        </NcModal>
+        </NcAppSettingsDialog>
       </template>
     </NcAppNavigation>
 		<NcAppContent>
@@ -196,6 +257,8 @@ import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation'
 import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcAppSettingsDialog from '@nextcloud/vue/dist/Components/NcAppSettingsDialog'
+import NcAppSettingsSection from '@nextcloud/vue/dist/Components/NcAppSettingsSection'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
@@ -206,6 +269,7 @@ import AlphaTab from './components/AlphaTab'
 import FileUpload from './components/FileUpload'
 import NcLoadingIcon from "@nextcloud/vue/dist/Components/NcLoadingIcon"
 import PlusIcon from 'vue-material-design-icons/Plus'
+import ReloadIcon from 'vue-material-design-icons/Reload'
 import CogIcon from 'vue-material-design-icons/Cog'
 import PencilIcon from "vue-material-design-icons/Pencil.vue"
 import LoadingIcon from "vue-material-design-icons/Loading.vue"
@@ -226,6 +290,8 @@ export default {
 		NcAppNavigationNew,
 		NcAppContent,
     NcModal,
+    NcAppSettingsDialog,
+    NcAppSettingsSection,
     NcActions,
 		NcActionButton,
 		NcActionInput,
@@ -235,6 +301,7 @@ export default {
     FileUpload,
     NcLoadingIcon,
     PlusIcon,
+    ReloadIcon,
     CogIcon,
     PrinterIcon,
     PencilIcon,
@@ -254,6 +321,10 @@ export default {
       modal: false,
       firstName: '',
       lastName: '',
+      scanningLibrary: false,
+      songsFolder: "",
+      updateInterval: 0,
+      visiblePreparationTime: true,
 		}
 	},
 	computed: {
@@ -305,7 +376,12 @@ export default {
     closeModal() {
       this.modal = false
     },
+    pickSongsFolder() {
 
+    },
+    rescan() {
+
+    },
     fileUploaded(filename) {
       //alert(filename)
       this.filename = filename
@@ -433,12 +509,20 @@ export default {
 
 /*Settings*/
 
-div.modal-settings-content {
-  margin: 50px;
-  text-align: center;
+div.app-settings legend.settings-info {
+  margin-bottom: 10px;
 }
 
-div.modal-settings-content .input-field {
+div.app-settings button.rescan {
+  margin-bottom: 10px;
+}
+
+/*div.modal-settings-content {*/
+/*  margin: 50px;*/
+/*  text-align: center;*/
+/*}*/
+
+div.app-settings div.buttom-form .input-field {
   margin: 12px 0;
 }
 
@@ -453,18 +537,18 @@ div.modal-settings-content .input-field {
   flex-grow: 1;
 }
 
-input[type='text'] {
-  width: 100%;
-}
-
-textarea {
-  flex-grow: 1;
-  width: 100%;
-}
-
-.main-wrapper {
+div.main-wrapper {
   width: 100%;
   padding: 1rem;
+}
+
+div.main-wrapper input[type='text'] {
+  width: 100%;
+}
+
+div.main-wrapper textarea {
+  flex-grow: 1;
+  width: 100%;
 }
 
 /* AppControls */
@@ -502,5 +586,14 @@ h2.location {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+</style>
 
+<style>
+/*Settings*/
+/*#app-settings input[type="text"],*/
+/*#app-settings input[type="number"],*/
+/*#app-settings .button.disable {*/
+/*  display: block;*/
+/*  width: 100%;*/
+/*}*/
 </style>
