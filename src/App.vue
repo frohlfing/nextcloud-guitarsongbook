@@ -6,41 +6,72 @@
     -->
 	<NcContent app-name="guitarsongbook">
 		<NcAppNavigation>
-			<NcAppNavigationNew v-if="!loading"
-          :text="t('guitarsongbook', 'Create song')"
-          :disabled="false"
-          button-id="new-guitarsongbook-button"
-          button-class="icon-add"
-          @click="newSong">
-        <template #icon>
-          <PlusIcon :size="20" />
-        </template>
-      </NcAppNavigationNew>
-      <FileUpload
-          :text="t('guitarsongbook', 'Upload Guitar Pro File')"
-          accept=".gp3, .gp4, .gp5, .gpx, .gp, .cap, .xml, .txt"
-          @uploaded="fileUploaded"/>
-      <ul>
-				<NcAppNavigationItem v-for="song in songs"
-					:key="song.id"
-					:title="song.name ? song.name : t('guitarsongbook', 'New song')"
-					:class="{active: currentSongId === song.id}"
-					@click="openSong(song)">
-					<template #actions>
-						<NcActionButton v-if="song.id === -1"
-							icon="icon-close"
-							@click="cancelNewSong(song)">
-							{{ t('guitarsongbook', 'Discard') }}
-						</NcActionButton>
-						<NcActionButton v-else
-							icon="icon-delete"
-							@click="deleteSong(song)">
-							{{ t('guitarsongbook', 'Delete') }}
-						</NcActionButton>
-					</template>
-				</NcAppNavigationItem>
-			</ul>
-		</NcAppNavigation>
+      <template #list>
+        <NcAppNavigationNew v-if="!loading"
+            :text="t('guitarsongbook', 'Create song')"
+            :disabled="false"
+            button-id="new-guitarsongbook-button"
+            button-class="icon-add"
+            @click="newSong">
+          <template #icon>
+            <PlusIcon :size="20" />
+          </template>
+        </NcAppNavigationNew>
+        <FileUpload
+            :text="t('guitarsongbook', 'Upload Guitar Pro File')"
+            accept=".gp3, .gp4, .gp5, .gpx, .gp, .cap, .xml, .txt"
+            @uploaded="fileUploaded"/>
+        <ul>
+          <NcAppNavigationItem v-for="song in songs"
+            :key="song.id"
+            :title="song.name ? song.name : t('guitarsongbook', 'New song')"
+            :class="{active: currentSongId === song.id}"
+            @click="openSong(song)">
+            <template #actions>
+              <NcActionButton v-if="song.id === -1"
+                icon="icon-close"
+                @click="cancelNewSong(song)">
+                {{ t('guitarsongbook', 'Discard') }}
+              </NcActionButton>
+              <NcActionButton v-else
+                icon="icon-delete"
+                @click="deleteSong(song)">
+                {{ t('guitarsongbook', 'Delete') }}
+              </NcActionButton>
+            </template>
+          </NcAppNavigationItem>
+        </ul>
+      </template>
+      <template #footer>
+        <NcAppNavigationNew
+            :text="t('guitarsongbook', 'Songbook settings')"
+            @click="showModal">
+          <template #icon>
+            <CogIcon :size="20" />
+          </template>
+        </NcAppNavigationNew>
+        <NcModal class="modal-settings"
+            v-if="modal"
+            @close="closeModal"
+            :title="t('guitarsongbook', 'Songbook settings')">
+          <div class="modal-settings-content">
+            <h2>Please enter your name</h2>
+            <NcTextField
+                label="First Name"
+                :value.sync="firstName" />
+            <NcTextField
+                label="Last Name"
+                :value.sync="lastName" />
+            <NcButton
+                :disabled="!firstName || !lastName"
+                @click="closeModal"
+                type="primary">
+              Submit
+            </NcButton>
+          </div>
+        </NcModal>
+      </template>
+    </NcAppNavigation>
 		<NcAppContent>
 			<div class="controls-wrapper">
 				<div class="location-wrapper">
@@ -164,15 +195,18 @@ import NcContent from '@nextcloud/vue/dist/Components/NcContent'
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation'
 import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField'
 import AlphaTab from './components/AlphaTab'
 import FileUpload from './components/FileUpload'
 import NcLoadingIcon from "@nextcloud/vue/dist/Components/NcLoadingIcon"
 import PlusIcon from 'vue-material-design-icons/Plus'
+import CogIcon from 'vue-material-design-icons/Cog'
 import PencilIcon from "vue-material-design-icons/Pencil.vue"
 import LoadingIcon from "vue-material-design-icons/Loading.vue"
 import CheckmarkIcon from "vue-material-design-icons/Check.vue"
@@ -191,14 +225,17 @@ export default {
 		NcAppNavigationItem,
 		NcAppNavigationNew,
 		NcAppContent,
+    NcModal,
     NcActions,
 		NcActionButton,
 		NcActionInput,
 		NcButton,
+    NcTextField,
 		AlphaTab,
     FileUpload,
     NcLoadingIcon,
     PlusIcon,
+    CogIcon,
     PrinterIcon,
     PencilIcon,
     LoadingIcon,
@@ -214,6 +251,9 @@ export default {
       filename: null,
       alphaTex: null,
       score: null,
+      modal: false,
+      firstName: '',
+      lastName: '',
 		}
 	},
 	computed: {
@@ -255,6 +295,17 @@ export default {
 	},
 
 	methods: {
+    // Settings
+    showModal() {
+      // this.firstName = ''
+      this.lastName = ''
+      this.modal = true
+      //emit(SHOW_SETTINGS_EVENT)
+    },
+    closeModal() {
+      this.modal = false
+    },
+
     fileUploaded(filename) {
       //alert(filename)
       this.filename = filename
@@ -379,6 +430,20 @@ export default {
 </script>
 
 <style scoped>
+
+/*Settings*/
+
+div.modal-settings-content {
+  margin: 50px;
+  text-align: center;
+}
+
+div.modal-settings-content .input-field {
+  margin: 12px 0;
+}
+
+/*App*/
+
 #app-content > div {
   width: 100%;
   height: 100%;
