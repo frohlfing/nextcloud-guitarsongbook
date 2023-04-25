@@ -45,92 +45,12 @@
       <template #footer>
         <NcAppNavigationNew
             :text="t('guitarsongbook', 'Songbook settings')"
-            @click="showModal">
+            @click="openSettingsDialog">
           <template #icon>
             <CogIcon :size="20" />
           </template>
         </NcAppNavigationNew>
-        <NcAppSettingsDialog
-            :open.sync="modal"
-            @close="closeModal"
-            :title="t('guitarsongbook', 'Songbook settings')"
-            :show-navigation="true">
-          <NcAppSettingsSection
-              id="settings-songs-folder"
-              :title="t('guitarsongbook', 'Songs folder')"
-              class="app-settings-section">
-            <fieldset>
-              <ul>
-                <li>
-                  <NcButton class="rescan" @click="rescan">
-                    <template #icon>
-                      <LoadingIcon v-if="scanningLibrary" />
-                      <ReloadIcon v-else />
-                    </template>
-                    {{ t("guitarsongbook", "Rescan library") }}
-                  </NcButton>
-                </li>
-                <li>
-                  <label class="settings-input">
-                    {{ t("guitarsongbook", "Songs folder") }}
-                  </label>
-                  <input
-                      type="text"
-                      :value="songsFolder"
-                      :placeholder="t('guitarsongbook', 'Please pick a folder')"
-                      @click="pickSongsFolder"/>
-                </li>
-                <li>
-                  <label class="settings-input">{{ t("guitarsongbook", "Update interval in minutes") }}</label>
-                  <input
-                      v-model="updateInterval"
-                      type="number"
-                      class="input settings-input"
-                      placeholder="0"/>
-                </li>
-              </ul>
-            </fieldset>
-          </NcAppSettingsSection>
-          <NcAppSettingsSection
-              id="settings-info-blocks"
-              :title="t('cookbook', 'Info blocks')"
-              class="app-settings-section">
-            <fieldset>
-              <legend class="settings-info">
-                {{ t("guitarsongbook", "Control which blocks of information are shown in the recipe view. If you do not use some features and find them distracting, you may hide them.") }}
-              </legend>
-              <ul>
-                <li>
-                  <input
-                      id="info-blocks-checkbox-preparation-time"
-                      v-model="visiblePreparationTime"
-                      type="checkbox"
-                      class="checkbox"
-                      value="1"
-                  />
-                  <label for="info-blocks-checkbox-preparation-time">
-                    {{ t("guitarsongbook", "Preparation time") }}
-                  </label>
-                </li>
-              </ul>
-            </fieldset>
-          </NcAppSettingsSection>
-          <div class="buttom-form">
-            <h2>Please enter your name</h2>
-            <NcTextField
-                label="First Name"
-                :value.sync="firstName" />
-            <NcTextField
-                label="Last Name"
-                :value.sync="lastName" />
-            <NcButton
-                :disabled="!firstName || !lastName"
-                @click="closeModal"
-                type="primary">
-              Submit
-            </NcButton>
-          </div>
-        </NcAppSettingsDialog>
+        <AppSettingsDialog :open="settingsOpen" @close="closeSettingsDialog"/>
       </template>
     </NcAppNavigation>
 		<NcAppContent>
@@ -144,75 +64,64 @@
             v-if="true"
             type="primary"
             :aria-label="t('guitarsongbook', 'Edit')"
-            @click=""
-        >
+            @click="">
           <template #icon>
             <PencilIcon :size="20" />
           </template>
           {{ t("guitarsongbook", "Edit") }}
         </NcButton>
         <NcButton
-            v-if="true"
             type="primary"
+            v-if="true"
             :aria-label="t('guitarsongbook', 'Save')"
-            @click=""
-        >
+            @click="">
           <template #icon>
             <LoadingIcon
-                v-if="false"
-                :size="20"
                 class="animation-rotate"
-            />
+                v-if="false"
+                :size="20"/>
             <CheckmarkIcon v-else :size="20" />
           </template>
           {{ t('guitarsongbook', 'Save') }}
         </NcButton>
         <NcActions
-            v-if="true"
-            :force-menu="true"
             class="overflow-menu"
-        >
+            v-if="true"
+            :force-menu="true">
           <NcActionButton
+              class="action-button"
               v-if="true"
               :icon="false ? 'icon-loading-small' : 'icon-history'"
-              class="action-button"
               :aria-label="t('guitarsongbook', 'Reload')"
-              @click=""
-          >
+              @click="">
             {{ t("guitarsongbook", "Reload") }}
           </NcActionButton>
           <NcActionButton
-              v-if="true"
               class="action-button"
+              v-if="true"
               :aria-label="t('guitarsongbook', 'Print')"
-              @click=""
-          >
+              @click="">
             <template #icon="">
               <printer-icon :size="20" />
             </template>
             {{ t('guitarsongbook', 'Print') }}
           </NcActionButton>
           <NcActionButton
-              v-if="true"
               icon="icon-delete"
               class="action-button"
+              v-if="true"
               :aria-label="t('guitarsongbook', 'Delete')"
-              @click=""
-          >
+              @click="">
             {{ t('guitarsongbook', 'Delete') }}
           </NcActionButton>
           <NcActionButton
-              v-if="true"
               class="action-button"
+              v-if="true"
               :aria-label="t('guitarsongbook', 'Cancel')"
-              @click=""
-          >
+              @click="">
             {{ t('guitarsongbook', 'Cancel') }}
             <template #icon>
-              <NcLoadingIcon
-                  v-if="false"
-                  :size="20"
-              />
+              <NcLoadingIcon v-if="false" :size="20"/>
               <eye-icon v-else :size="20" />
             </template>
           </NcActionButton>
@@ -256,23 +165,20 @@ import NcContent from '@nextcloud/vue/dist/Components/NcContent'
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation'
 import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
-import NcAppSettingsDialog from '@nextcloud/vue/dist/Components/NcAppSettingsDialog'
-import NcAppSettingsSection from '@nextcloud/vue/dist/Components/NcAppSettingsSection'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField'
+import AppSettingsDialog from './components/AppSettingsDialog'
 import AlphaTab from './components/AlphaTab'
 import FileUpload from './components/FileUpload'
 import NcLoadingIcon from "@nextcloud/vue/dist/Components/NcLoadingIcon"
+import LoadingIcon from "vue-material-design-icons/Loading.vue"
 import PlusIcon from 'vue-material-design-icons/Plus'
 import ReloadIcon from 'vue-material-design-icons/Reload'
 import CogIcon from 'vue-material-design-icons/Cog'
 import PencilIcon from "vue-material-design-icons/Pencil.vue"
-import LoadingIcon from "vue-material-design-icons/Loading.vue"
 import CheckmarkIcon from "vue-material-design-icons/Check.vue"
 import PrinterIcon from "vue-material-design-icons/Printer.vue"
 import EyeIcon from "vue-material-design-icons/Eye.vue"
@@ -289,23 +195,20 @@ export default {
 		NcAppNavigationItem,
 		NcAppNavigationNew,
 		NcAppContent,
-    NcModal,
-    NcAppSettingsDialog,
-    NcAppSettingsSection,
     NcActions,
 		NcActionButton,
 		NcActionInput,
 		NcButton,
-    NcTextField,
+    AppSettingsDialog,
 		AlphaTab,
     FileUpload,
     NcLoadingIcon,
+    LoadingIcon,
     PlusIcon,
     ReloadIcon,
     CogIcon,
     PrinterIcon,
     PencilIcon,
-    LoadingIcon,
     CheckmarkIcon,
     EyeIcon,
 	},
@@ -318,13 +221,7 @@ export default {
       filename: null,
       alphaTex: null,
       score: null,
-      modal: false,
-      firstName: '',
-      lastName: '',
-      scanningLibrary: false,
-      songsFolder: "",
-      updateInterval: 0,
-      visiblePreparationTime: true,
+      settingsOpen: false,
 		}
 	},
 	computed: {
@@ -339,7 +236,6 @@ export default {
 			}
 			return this.songs.find((song) => song.id === this.currentSongId)
 		},
-
 		/**
 		 * Returns true if a song is selected and its title is not empty
 		 *
@@ -366,34 +262,11 @@ export default {
 	},
 
 	methods: {
-    // Settings
-    showModal() {
-      // this.firstName = ''
-      this.lastName = ''
-      this.modal = true
-      //emit(SHOW_SETTINGS_EVENT)
-    },
-    closeModal() {
-      this.modal = false
-    },
-    pickSongsFolder() {
-
-    },
-    rescan() {
-
-    },
     fileUploaded(filename) {
-      //alert(filename)
       this.filename = filename
     },
-
     scoreLoaded(score) {
       console.log('scoreLoaded', score)
-      const trackList = document.querySelector(".at-track-list");
-      // trackItem.onclick = (e) => {
-      //   e.stopPropagation();
-      //   api.renderTracks([track]);
-      // };
       this.score = score
     },
 
@@ -501,30 +374,22 @@ export default {
 				showError(t('guitarsongbook', 'Could not delete the song'))
 			}
 		},
+    // ---------------------------
+    // Settings
+    // ---------------------------
+    openSettingsDialog() {
+      // this.firstName = ''
+      this.lastName = ''
+      this.settingsOpen = true
+    },
+    closeSettingsDialog() {
+      this.settingsOpen = false
+    },
 	},
 }
 </script>
 
 <style scoped>
-
-/*Settings*/
-
-div.app-settings legend.settings-info {
-  margin-bottom: 10px;
-}
-
-div.app-settings button.rescan {
-  margin-bottom: 10px;
-}
-
-/*div.modal-settings-content {*/
-/*  margin: 50px;*/
-/*  text-align: center;*/
-/*}*/
-
-div.app-settings div.buttom-form .input-field {
-  margin: 12px 0;
-}
 
 /*App*/
 
@@ -586,14 +451,4 @@ h2.location {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-</style>
-
-<style>
-/*Settings*/
-/*#app-settings input[type="text"],*/
-/*#app-settings input[type="number"],*/
-/*#app-settings .button.disable {*/
-/*  display: block;*/
-/*  width: 100%;*/
-/*}*/
 </style>

@@ -24,8 +24,15 @@ OC.L10N.register("guitarsongbook",
     "Could not delete the song": "Konnte den Song nicht löschen.",
     "Song deleted" : "Song erfolgreich gelöscht.",
 
-    // nicht verwendet
+    // Settings
     "Songbook settings": "Songbuch-Einstellungen",
+    "Songs folder": "Songs-Ordner",
+    "Rescan library": "Bibliothek neu einlesen",
+    "Please pick a folder": "Bitte einen Ordner auswählen",
+    "Update interval in minutes": "Aktualisierungsintervall in Minuten",
+    "Info blocks": "Infoblöcke",
+    "Control which blocks of information are shown in the recipe view. If you do not use some features and find them distracting, you may hide them.": "Steuere, welche Informationsblöcke in der Rezeptansicht angezeigt werden. Wenn du einige Funktionen nicht verwendest und sie als störend empfindest, kannst du sie ausblenden.",
+    "Preparation time": "Vorbereitungsdauer",
 
     // FileUpload
     "Could not upload the file.": "Die Datei konnte nicht hochgeladen werden.",
