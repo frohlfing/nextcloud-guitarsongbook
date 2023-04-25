@@ -6,53 +6,64 @@ declare(strict_types=1);
 
 namespace OCA\GuitarSongbook\Service;
 
+use DateTime;
 use Exception;
 
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCA\GuitarSongbook\Db\Song;
 use OCA\GuitarSongbook\Db\SongMapper;
+use OCA\GuitarSongbook\Db\ShotMapper;
 
 class SongService
 {
-	private SongMapper $mapper;
+	private SongMapper $songMapper;
+	private ShotMapper $shotMapper;
 
-	public function __construct(SongMapper $mapper)
+	public function __construct(SongMapper $songMapper, ShotMapper $shotMapper)
     {
-		$this->mapper = $mapper;
+		$this->songMapper = $songMapper;
+		$this->shotMapper = $shotMapper;
 	}
 
     /**
-     * @return list<Song>
-     * @noinspection PhpUnused
+     * @param string $userId
+     * @return array
      * @throws \OCP\DB\Exception
      */
 	public function findAll(string $userId): array
     {
-		return $this->mapper->findAll($userId);
+		return $this->songMapper->findAll($userId);
 	}
 
-	/**
-	 * @return never
-	 */
+    /**
+     * @param Exception $e
+     * @return never
+     * @throws SongNotFound
+     * @throws Exception
+     */
 	private function handleException(Exception $e)
     {
 		if ($e instanceof DoesNotExistException ||
 			$e instanceof MultipleObjectsReturnedException) {
             /** @noinspection PhpUnhandledExceptionInspection */
             throw new SongNotFound($e->getMessage());
-		} else {
+		}
+        else {
 			throw $e;
 		}
 	}
 
     /**
+     * @param int $id
+     * @param string $userId
+     * @return Song
      * @throws SongNotFound
      */
     public function find(int $id, string $userId): Song
     {
 		try {
-			return $this->mapper->find($id, $userId);
+			return $this->songMapper->find($id, $userId);
 
 			// in order to be able to plug in different storage backends like files
             // for instance it is a good idea to turn storage related exceptions
@@ -64,22 +75,48 @@ class SongService
 		}
 	}
 
-	public function create(string $title, string $content, string $userId): Song
+    /**
+     * @param string $name
+     * @param string $title
+     * @param string $userId
+     * @return Song
+     * @throws \OCP\DB\Exception
+     */
+	public function create(string $name, string $title, string $userId): Song
     {
+        //$now = (new DateTime())->getTimestamp();
+        $now = (new DateTime())->format('Y-m-d H:i:s');
+        //$now = new DateTime();
+
 		$song = new Song();
+		$song->setName($name);
+        $song->setUserId($userId);
 		$song->setTitle($title);
-		$song->setContent($content);
-		$song->setUserId($userId);
-		return $this->mapper->insert($song);
+        $song->setCreated($now);
+        $song->setUpdated($now);
+		return $this->songMapper->insert($song);
 	}
 
-	public function update(int $id, string $title, string $content, string $userId): Song
+    /**
+     * @param int $id
+     * @param string $name
+     * @param string $title
+     * @param string $userId
+     * @return Song
+     * @throws SongNotFound
+     */
+	public function update(int $id, string $name, string $title, string $userId): Song
     {
+        //$now = (new DateTime())->getTimestamp();
+        $now = (new DateTime())->format('Y-m-d H:i:s');
+        //$now = new DateTime();
+
 		try {
-			$song = $this->mapper->find($id, $userId);
+			$song = $this->songMapper->find($id, $userId);
+			$song->setName($name);
 			$song->setTitle($title);
-			$song->setContent($content);
-			return $this->mapper->update($song);
+            $song->setUpdated($now);
+			return $this->songMapper->update($song);
 		}
         catch (Exception $e) {
 			$this->handleException($e);
@@ -87,13 +124,22 @@ class SongService
 	}
 
     /**
+     * @param int $id
+     * @param string $userId
+     * @return Song
      * @throws SongNotFound
      */
     public function delete(int $id, string $userId): Song
     {
 		try {
-			$song = $this->mapper->find($id, $userId);
-			$this->mapper->delete($song);
+            // delete Shots
+            $songs = $this->shotMapper->findAllOfSong($id, $userId);
+            foreach ($songs as $song) {
+                $this->shotMapper->delete($song);
+            }
+            // delete Songs
+			$song = $this->songMapper->find($id, $userId);
+			$this->songMapper->delete($song);
 			return $song;
 		}
         catch (Exception $e) {

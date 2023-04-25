@@ -17,11 +17,15 @@ OC.L10N.register("guitarsongbook",
     "Create song": "Song erstellen",
     "Upload Guitar Pro File": "Guitar Pro File hochladen",
     "New song": "Neuer Song",
-    "Songbook settings": "Songbuch-Einstellungen",
 
-    //"Song deleted" : "Song erfolgreich gelöscht.",
-    //"Saving failed" : "Speichern fehlgeschlagen",
-    //"Deleting failed" : "Löschen fehlgeschlagen",
+    "Could not fetch songs": "",
+    "Could not create the song": "Konnte den Song nicht anlegen.",
+    "Could not update the song": "Konnte den Song nicht speichern.",
+    "Could not delete the song": "Konnte den Song nicht löschen.",
+    "Song deleted" : "Song erfolgreich gelöscht.",
+
+    // nicht verwendet
+    "Songbook settings": "Songbuch-Einstellungen",
 
     // FileUpload
     "Could not upload the file.": "Die Datei konnte nicht hochgeladen werden.",

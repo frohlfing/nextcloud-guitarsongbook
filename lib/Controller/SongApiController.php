@@ -21,15 +21,15 @@ use OCP\IRequest;
 
 class SongApiController extends ApiController
 {
-	private SongService $service;
+	private SongService $songService;
 	private ?string $userId;
 
 	use Errors;
 
-	public function __construct(IRequest $request, SongService $service, ?string $userId)
+	public function __construct(IRequest $request, SongService $songService, ?string $userId)
     {
 		parent::__construct(Application::APP_ID, $request);
-		$this->service = $service;
+		$this->songService = $songService;
 		$this->userId = $userId;
 	}
 
@@ -41,53 +41,64 @@ class SongApiController extends ApiController
      */
 	public function index(): DataResponse
     {
-		return new DataResponse($this->service->findAll($this->userId));
+		return new DataResponse($this->songService->findAll($this->userId));
 	}
 
-	/**
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @NoAdminRequired
-	 */
+    /**
+     * @param int $id
+     * @return DataResponse
+     * @CORS
+     * @NoCSRFRequired
+     * @NoAdminRequired
+     */
 	public function show(int $id): DataResponse
     {
 		return $this->handleNotFound(function () use ($id) {
-			return $this->service->find($id, $this->userId);
+			return $this->songService->find($id, $this->userId);
 		});
 	}
 
-	/**
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @NoAdminRequired
-	 */
-	public function create(string $title, string $content): DataResponse
+    /**
+     * @param string $name
+     * @param string $title
+     * @return DataResponse
+     * @throws Exception
+     * @CORS
+     * @NoCSRFRequired
+     * @NoAdminRequired
+     */
+	public function create(string $name, string $title): DataResponse
     {
-		return new DataResponse($this->service->create($title, $content,
-			$this->userId));
+		return new DataResponse($this->songService->create($name, $title, $this->userId));
 	}
 
-	/**
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @NoAdminRequired
-	 */
-	public function update(int $id, string $title, string $content): DataResponse
+    /**
+     * @param int $id
+     * @param string $name
+     * @param string $title
+     * @return DataResponse
+     * @CORS
+     * @NoCSRFRequired
+     * @NoAdminRequired
+     */
+	public function update(int $id, string $name, string $title): DataResponse
     {
-		return $this->handleNotFound(function () use ($id, $title, $content) {
-			return $this->service->update($id, $title, $content, $this->userId);
+		return $this->handleNotFound(function () use ($id, $name, $title) {
+			return $this->songService->update($id, $name, $title, $this->userId);
 		});
 	}
 
-	/**
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @NoAdminRequired
-	 */
+    /**
+     * @param int $id
+     * @return DataResponse
+     * @CORS
+     * @NoCSRFRequired
+     * @NoAdminRequired
+     */
 	public function destroy(int $id): DataResponse
     {
 		return $this->handleNotFound(function () use ($id) {
-			return $this->service->delete($id, $this->userId);
+			return $this->songService->delete($id, $this->userId);
 		});
 	}
 }

@@ -18,17 +18,22 @@ use OCP\AppFramework\Db\Entity;
  * @method setIndex(int $index): void
  * @method getUrl(): string
  * @method setUrl(string $url): void
- * @method getText(): string
- * @method setText(string $text): void
+ * @method getText(): ?string
+ * @method setText(?string $text): void
  */
 class Shot extends Entity implements JsonSerializable
 {
-	protected int $song_id;
-    protected int $index;
-    protected string $url;
-	protected string $text;
+	protected int $song_id = 0;
+    protected int $index = 0;
+    protected string $url = '';
+	protected ?string $text = null;
 
-	public function jsonSerialize(): array {
+//    public function __construct()
+//    {
+//    }
+
+	public function jsonSerialize(): array
+    {
 		return [
 			'id' => $this->id,
 			'song_id' => $this->song_id,

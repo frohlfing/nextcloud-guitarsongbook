@@ -25,8 +25,8 @@ declare(strict_types=1);
 
 return [
 	'resources' => [
-		'note'     => ['url' => '/notes'],
-		'note_api' => ['url' => '/api/0.1/notes']
+		'song'     => ['url' => '/songs'],
+		'song_api' => ['url' => '/api/0.1/songs']
 	],
 	'routes' => [
         // PageController
@@ -37,6 +37,6 @@ return [
 		['name' => 'file#upload', 'url' => '/upload',          'verb' => 'POST'],
 
         // SongApiController
-		['name' => 'note_api#preflighted_cors', 'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']]
+		['name' => 'song_api#preflighted_cors', 'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']], // todo wo wird diese Route denn verwendet?
 	]
 ];

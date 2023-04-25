@@ -3,6 +3,7 @@ namespace OCA\GuitarSongbook\Service;
 
 use Exception;
 use OCP\AppFramework\Http\StreamResponse;
+use OCP\Files\NotFoundException;
 use OCP\IL10N;
 
 class FileService {
@@ -17,6 +18,9 @@ class FileService {
     }
 
     /**
+     * @param $file
+     * @return string
+     * @throws NotFoundException
      * @throws Exception
      */
     public function saveUploadedFile($file): string
@@ -46,6 +50,11 @@ class FileService {
 //        return file_get_contents($this->storage->getFullPath($song));
 //    }
 
+    /**
+     * @param $song
+     * @return StreamResponse
+     * @throws NotFoundException
+     */
     public function file($song): StreamResponse
     {
         return new StreamResponse($this->storage->getFullPath($song));

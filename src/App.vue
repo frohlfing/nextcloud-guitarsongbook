@@ -11,7 +11,7 @@
           :disabled="false"
           button-id="new-guitarsongbook-button"
           button-class="icon-add"
-          @click="newNote">
+          @click="newSong">
         <template #icon>
           <PlusIcon :size="20" />
         </template>
@@ -21,20 +21,20 @@
           accept=".gp3, .gp4, .gp5, .gpx, .gp, .cap, .xml, .txt"
           @uploaded="fileUploaded"/>
       <ul>
-				<NcAppNavigationItem v-for="note in notes"
-					:key="note.id"
-					:title="note.title ? note.title : t('guitarsongbook', 'New song')"
-					:class="{active: currentNoteId === note.id}"
-					@click="openNote(note)">
+				<NcAppNavigationItem v-for="song in songs"
+					:key="song.id"
+					:title="song.name ? song.name : t('guitarsongbook', 'New song')"
+					:class="{active: currentSongId === song.id}"
+					@click="openSong(song)">
 					<template #actions>
-						<NcActionButton v-if="note.id === -1"
+						<NcActionButton v-if="song.id === -1"
 							icon="icon-close"
-							@click="cancelNewNote(note)">
+							@click="cancelNewSong(song)">
 							{{ t('guitarsongbook', 'Discard') }}
 						</NcActionButton>
 						<NcActionButton v-else
 							icon="icon-delete"
-							@click="deleteNote(note)">
+							@click="deleteSong(song)">
 							{{ t('guitarsongbook', 'Delete') }}
 						</NcActionButton>
 					</template>
@@ -135,17 +135,17 @@
             :tex="alphaTex"
             @score-loaded="scoreLoaded"
         />
-				<div v-if="currentNote">
-					<input ref="title"
-						v-model="currentNote.title"
-						type="text"
-						:disabled="updating">
-					<textarea ref="content" v-model="currentNote.content" :disabled="updating" />
-					<input type="button"
-						class="primary"
-						:value="t('guitarsongbook', 'Save')"
-						:disabled="updating || !savePossible"
-						@click="saveNote">
+				<div v-if="currentSong">
+					<input ref="name" type="text"
+              v-model="currentSong.name"
+						  :disabled="updating">
+					<input type="text"
+              v-model="currentSong.title"
+              :disabled="updating" />
+					<input type="button" class="primary"
+						  :value="t('guitarsongbook', 'Save')"
+						  :disabled="updating || !savePossible"
+						  @click="saveSong">
 				</div>
 				<div v-else id="emptycontent">
 					<div class="icon-file" />
@@ -207,8 +207,8 @@ export default {
 	},
 	data() {
 		return {
-			notes: [],
-			currentNoteId: null,
+			songs: [],
+			currentSongId: null,
 			updating: false,
 			loading: true,
       filename: null,
@@ -218,36 +218,36 @@ export default {
 	},
 	computed: {
 		/**
-		 * Return the currently selected note object
+		 * Return the currently selected song object
 		 *
 		 * @return {object | null}
 		 */
-		currentNote() {
-			if (this.currentNoteId === null) {
+		currentSong() {
+			if (this.currentSongId === null) {
 				return null
 			}
-			return this.notes.find((note) => note.id === this.currentNoteId)
+			return this.songs.find((song) => song.id === this.currentSongId)
 		},
 
 		/**
-		 * Returns true if a note is selected and its title is not empty
+		 * Returns true if a song is selected and its title is not empty
 		 *
 		 * @return {boolean}
 		 */
 		savePossible() {
-			return this.currentNote && this.currentNote.title !== ''
+			return this.currentSong && this.currentSong.title !== ''
 		},
 	},
 	/**
-	 * Fetch list of notes when the component is loaded
+	 * Fetch list of songs when the component is loaded
 	 */
 	async mounted() {
 		try {
-			const response = await axios.get(generateUrl('/apps/guitarsongbook/notes'))
-			this.notes = response.data
+			const response = await axios.get(generateUrl('/apps/guitarsongbook/songs'))
+			this.songs = response.data
 		} catch (e) {
 			console.error(e)
-			showError(t('guitarsongbook', 'Could not fetch notes'))
+			showError(t('guitarsongbook', 'Could not fetch songs'))
 		}
     //this.filename = 'canon.gp'
     this.alphaTex = "\\title 'Test' . 3.3.4"
@@ -271,104 +271,107 @@ export default {
     },
 
     /**
-		 * Create a new song and focus the note content field automatically
+		 * Create a new song and focus the song content field automatically
 		 *
-		 * @param {object} note Note object
+		 * @param {object} song Song object
 		 */
-		openNote(note) {
+		openSong(song) {
 			if (this.updating) {
 				return
 			}
-			this.currentNoteId = note.id
+			this.currentSongId = song.id
 			this.$nextTick(() => {
-				this.$refs.content.focus()
+				this.$refs.name.focus()
 			})
 		},
 		/**
 		 * Action tiggered when clicking the save button
 		 * create a new song or save
 		 */
-		saveNote() {
-			if (this.currentNoteId === -1) {
-				this.createNote(this.currentNote)
+		saveSong() {
+			if (this.currentSongId === -1) {
+				this.createSong(this.currentSong)
 			} else {
-				this.updateNote(this.currentNote)
+				this.updateSong(this.currentSong)
 			}
 		},
 		/**
-		 * Create a new song and focus the note content field automatically
-		 * The note is not yet saved, therefore an id of -1 is used until it
+		 * Create a new song and focus the song content field automatically
+		 * The song is not yet saved, therefore an id of -1 is used until it
 		 * has been persisted in the backend
 		 */
-		newNote() {
-			if (this.currentNoteId !== -1) {
-				this.currentNoteId = -1
-				this.notes.push({
+		newSong() {
+			if (this.currentSongId !== -1) {
+				this.currentSongId = -1
+				this.songs.push({
 					id: -1,
+					name: '',
 					title: '',
-					content: '',
 				})
 				this.$nextTick(() => {
-					this.$refs.title.focus()
+					this.$refs.name.focus()
 				})
 			}
 		},
 		/**
 		 * Abort creating a new song
 		 */
-		cancelNewNote() {
-			this.notes.splice(this.notes.findIndex((note) => note.id === -1), 1)
-			this.currentNoteId = null
+		cancelNewSong() {
+			this.songs.splice(this.songs.findIndex((song) => song.id === -1), 1)
+			this.currentSongId = null
 		},
 		/**
 		 * Create a new song by sending the information to the server
 		 *
-		 * @param {object} note Note object
+		 * @param {object} song Song object
 		 */
-		async createNote(note) {
+		async createSong(song) {
 			this.updating = true
 			try {
-				const response = await axios.post(generateUrl('/apps/guitarsongbook/notes'), note)
-				const index = this.notes.findIndex((match) => match.id === this.currentNoteId)
-				this.$set(this.notes, index, response.data)
-				this.currentNoteId = response.data.id
-			} catch (e) {
+				const response = await axios.post(generateUrl('/apps/guitarsongbook/songs'), song)
+				const index = this.songs.findIndex((match) => match.id === this.currentSongId)
+				this.$set(this.songs, index, response.data)
+				this.currentSongId = response.data.id
+			}
+      catch (e) {
 				console.error(e)
-				showError(t('guitarsongbook', 'Could not create the note'))
+				showError(t('guitarsongbook', 'Could not create the song'))
 			}
 			this.updating = false
 		},
 		/**
-		 * Update an existing note on the server
+		 * Update an existing song on the server
 		 *
-		 * @param {object} note Note object
+		 * @param {object} song Song object
 		 */
-		async updateNote(note) {
+		async updateSong(song) {
 			this.updating = true
 			try {
-				await axios.put(generateUrl(`/apps/guitarsongbook/notes/${note.id}`), note)
-			} catch (e) {
+				await axios.put(generateUrl(`/apps/guitarsongbook/songs/${song.id}`), song)
+			}
+      catch (e) {
 				console.error(e)
-				showError(t('guitarsongbook', 'Could not update the note'))
+				showError(t('guitarsongbook', 'Could not update the song'))
 			}
 			this.updating = false
 		},
 		/**
-		 * Delete a note, remove it from the frontend and show a hint
+		 * Delete a song, remove it from the frontend and show a hint
 		 *
-		 * @param {object} note Note object
+		 * @param {object} song Song object
 		 */
-		async deleteNote(note) {
+		async deleteSong(song) {
 			try {
-				await axios.delete(generateUrl(`/apps/guitarsongbook/notes/${note.id}`))
-				this.notes.splice(this.notes.indexOf(note), 1)
-				if (this.currentNoteId === note.id) {
-					this.currentNoteId = null
+				await axios.delete(generateUrl(`/apps/guitarsongbook/songs/${song.id}`))
+				this.songs.splice(this.songs.indexOf(song), 1)
+				if (this.currentSongId === song.id) {
+					this.currentSongId = null
 				}
-				showSuccess(t('guitarsongbook', 'Note deleted'))
-			} catch (e) {
+				showSuccess(t('guitarsongbook', 'Song deleted'))
+			}
+      catch (e) {
 				console.error(e)
-				showError(t('guitarsongbook', 'Could not delete the note'))
+				showError(t('guitarsongbook', 'Could not delete the song'))
 			}
 		},
 	},

@@ -27,17 +27,20 @@ class SongController extends Controller
 	}
 
     /**
-     * @NoAdminRequired
+     * @return DataResponse
      * @throws Exception
+     * @NoAdminRequired
      */
 	public function index(): DataResponse
     {
 		return new DataResponse($this->songService->findAll($this->userId));
 	}
 
-	/**
-	 * @NoAdminRequired
-	 */
+    /**
+     * @param int $id
+     * @return DataResponse
+     * @NoAdminRequired
+     */
 	public function show(int $id): DataResponse
     {
 		return $this->handleNotFound(function () use ($id) {
@@ -45,27 +48,37 @@ class SongController extends Controller
 		});
 	}
 
-	/**
-	 * @NoAdminRequired
-	 */
-	public function create(string $title, string $content): DataResponse
+    /**
+     * @param string $name
+     * @param string $title
+     * @return DataResponse
+     * @throws Exception
+     * @NoAdminRequired
+     */
+	public function create(string $name, string $title): DataResponse
     {
-		return new DataResponse($this->songService->create($title, $content, $this->userId));
+		return new DataResponse($this->songService->create($name, $title, $this->userId));
 	}
 
-	/**
-	 * @NoAdminRequired
-	 */
-	public function update(int $id, string $title, string $content): DataResponse
+    /**
+     * @param int $id
+     * @param string $name
+     * @param string $title
+     * @return DataResponse
+     * @NoAdminRequired
+     */
+	public function update(int $id, string $name, string $title): DataResponse
     {
-		return $this->handleNotFound(function () use ($id, $title, $content) {
-			return $this->songService->update($id, $title, $content, $this->userId);
+		return $this->handleNotFound(function () use ($id, $name, $title) {
+			return $this->songService->update($id, $name, $title, $this->userId);
 		});
 	}
 
-	/**
-	 * @NoAdminRequired
-	 */
+    /**
+     * @param int $id
+     * @return DataResponse
+     * @NoAdminRequired
+     */
 	public function destroy(int $id): DataResponse
     {
 		return $this->handleNotFound(function () use ($id) {

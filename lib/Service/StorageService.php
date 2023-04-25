@@ -5,30 +5,29 @@ use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
-use OCP\IUserSession;
 
-class StorageService {
+//use OCP\IUserSession;
 
-    private IUserSession $userSession;
+class StorageService
+{
     private IRootFolder $rootFolder;
-
-    public function __construct(IUserSession $userSession, IRootFolder $rootFolder)
-    {
-        $this->userSession = $userSession;
-        $this->rootFolder = $rootFolder;
-    }
+    private Folder $homeFolder;
 
     /**
-     * Get the home folder name of the current user.
-     * e.g.: /admin/files
-     *
      * @throws NotPermittedException
      */
-    private function getHomeFolder(): Folder
+    public function __construct(IRootFolder $rootFolder, ?string $userId)
     {
-        $user = $this->userSession->getUser();
-        return $this->rootFolder->getUserFolder($user->getUID());
+        $this->rootFolder = $rootFolder;
+        $this->homeFolder = $this->rootFolder->getUserFolder($userId);
     }
+
+//    public function __construct(IRootFolder $rootFolder, IUserSession $userSession)
+//    {
+//        $this->rootFolder = $rootFolder;
+//        $userId = $userSession->getUser()->getUID();
+//        $this->homeFolder = $this->rootFolder->getUserFolder($userId);
+//    }
 
     public function getSongsFolderName(): string
     {
@@ -39,15 +38,13 @@ class StorageService {
      * @param string $folder The folder must exist in the song directory
      * @return string
      * @throws NotFoundException
-     * @throws NotPermittedException
      */
     public function getFullPath(string $folder = ''): string
     {
         /** @noinspection PhpUndefinedClassInspection */
         $dataPath = OC::$SERVERROOT . '/data';
-        $homeFolder = $this->getHomeFolder();
         $songsFolderName = $this->getSongsFolderName();
 
-        return $dataPath . $homeFolder->get($songsFolderName . '/' . $folder)->getPath();
+        return $dataPath . $this->homeFolder->get($songsFolderName . '/' . $folder)->getPath();
     }
 }

@@ -61,11 +61,11 @@ class Version000001Date20230413123054 extends SimpleMigrationStep {
             ]);
             $table->addIndex(['name'], 'guitarsongbook_name_index');
 
-            $table->addColumn('uid', 'string', [ // user id, e.g. "admin"
+            $table->addColumn('user_id', 'string', [ // user id, e.g. "admin"
                 'notnull' => true,
                 'length' => 64,
             ]);
-            $table->addIndex(['uid'], 'guitarsongbook_uid_index');
+            $table->addIndex(['user_id'], 'guitarsongbook_uid_index');
         }
 
         // Song Information (optional)

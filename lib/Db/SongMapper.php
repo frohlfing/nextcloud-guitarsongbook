@@ -25,33 +25,33 @@ class SongMapper extends QBMapper
 
     /**
      * @param int $id
-     * @param string $uid
+     * @param string $userId
      * @return Song
      * @throws DoesNotExistException
      * @throws Exception
      * @throws MultipleObjectsReturnedException
      */
-	public function find(int $id, string $uid): Song
+	public function find(int $id, string $userId): Song
     {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from('guitarsongbook')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
-			->andWhere($qb->expr()->eq('uid', $qb->createNamedParameter($uid)));
+			->andWhere($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
 		return $this->findEntity($qb);
 	}
 
     /**
-     * @param string $uid
+     * @param string $userId
      * @return array
      * @throws Exception
      */
-	public function findAll(string $uid): array
+	public function findAll(string $userId): array
     {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from('guitarsongbook')
-			->where($qb->expr()->eq('uid', $qb->createNamedParameter($uid)));
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
 		return $this->findEntities($qb);
 	}
 }
