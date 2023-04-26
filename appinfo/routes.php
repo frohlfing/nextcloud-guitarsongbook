@@ -25,19 +25,22 @@ declare(strict_types=1);
 
 return [
 	'resources' => [
-		'song'     => ['url' => '/songs'],
+		//'song'     => ['url' => '/songs'],
 		'song_api' => ['url' => '/api/0.1/songs']
 	],
 	'routes' => [
         // PageController
 		['name' => 'page#index',  'url' => '/',                'verb' => 'GET'],
 
-        // FileController
-		['name' => 'file#load',    'url' => '/files/{name}',    'verb' => 'GET'],
-		['name' => 'file#save',    'url' => '/files',           'verb' => 'POST'],
-		['name' => 'file#upload',  'url' => '/files/upload',    'verb' => 'POST'],
-		//['name' => 'file#rename',  'url' => '/files/{name}',    'verb' => 'PUT'],
-		//['name' => 'file#destroy', 'url' => '/files/{name}',    'verb' => 'DELETE'],
+        // SongController
+        ['name' => 'song#index',   'url' => '/songs',           'verb' => 'GET'],
+        ['name' => 'song#show',    'url' => '/songs/{id}',      'verb' => 'GET'],
+        ['name' => 'song#file',    'url' => '/songs/{id}/file', 'verb' => 'GET'],
+        ['name' => 'song#create',  'url' => '/songs',           'verb' => 'POST'],
+        ['name' => 'song#save',    'url' => '/songs/file',      'verb' => 'POST'],
+        ['name' => 'song#upload',  'url' => '/songs/upload',    'verb' => 'POST'],
+        ['name' => 'song#update',  'url' => '/songs/{id}',      'verb' => 'PUT'],
+        ['name' => 'song#destroy', 'url' => '/songs/{id}',      'verb' => 'DELETE'],
 
         // SongApiController
 		['name' => 'song_api#preflighted_cors', 'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']], // für CORS erforderlich

@@ -8,6 +8,7 @@ use OCP\AppFramework\Http\StreamResponse;
 use OCP\Files\AlreadyExistsException;
 use OCP\Files\NotFoundException;
 use OCP\IL10N;
+use ZipArchive;
 
 class FileService {
 
@@ -18,6 +19,38 @@ class FileService {
     {
         $this->l = $l;
         $this->storage = $storage;
+    }
+
+    /**
+     * Create a new Guitar Pro file.
+     *
+     * @param string $name
+     * @return string
+     * @throws NotFoundException
+     * @throws Exception
+     */
+    public function saveEmptyFile(string $name): string
+    {
+        // validate
+        if (empty($name)) {
+            throw new InvalidArgumentException($this->l->t('Name required!'));
+        }
+
+        $emptyFile = realpath(__DIR__ . '/../../gp/empty.gp') ; // __DIR__ == ./guitarsongbook/lib/Service
+
+        // create the folder
+        $path = $this->storage->getFullPath() . '/' . $name;
+        if (is_dir($path)) {
+            throw new AlreadyExistsException($this->l->t('Folder %1$s already exists', [$name]));
+        }
+        if (!is_dir($path) && mkdir($path) === false) {
+            throw new Exception($this->l->t('Unable to create the folder %1$s', [$name]));
+        }
+        if (copy($emptyFile, $path . '/song.gp') === false) {
+            throw new Exception($this->l->t('Unable to save the file %1$s', [$name .'/song.gp']));
+        }
+
+        return $name;
     }
 
     /**
@@ -64,7 +97,7 @@ class FileService {
 
         // save the file
         if (file_put_contents($path . '/song.gp', $bytes, LOCK_EX) === false) {
-            throw new Exception($this->l->t('Unable to save the file %1s$', [$basename .'/song.gp']));
+            throw new Exception($this->l->t('Unable to save the file %1$s', [$basename .'/song.gp']));
         }
 
         return $basename;
@@ -107,7 +140,7 @@ class FileService {
 
         // save the file
         if (!move_uploaded_file($file['tmp_name'], $path . '/song.gp')) {
-            throw new Exception($this->l->t('Unable to save the file %1s$', [$basename .'/song.gp']));
+            throw new Exception($this->l->t('Unable to save the file %1$s', [$basename .'/song.gp']));
         }
 
         return $basename;
@@ -186,5 +219,45 @@ class FileService {
     public function file(string $name): StreamResponse
     {
         return new StreamResponse($this->storage->getFullPath($name) . '/song.gp');
+    }
+
+    /**
+     * @throws NotFoundException
+     * @throws Exception
+     */
+    public function getInformation(string $name): object
+    {
+        $zip = new ZipArchive();
+        if (!$zip->open($this->storage->getFullPath($name) . '/song.gp', ZipArchive::RDONLY)) {
+            throw new Exception($this->l->t('Unable to open the file %1$s', [$name . '/song.gp']));
+
+        }
+        $version = $zip->getFromName('VERSION');
+        if ($version !== '7.0') {
+            throw new Exception($this->l->t('GP Version 7.0 expected but found %1$s', [$version]));
+        }
+        $text = $zip->getFromName('Content/score.gpif');
+        if ($text === false) {
+            throw new Exception($this->l->t('Could not find the score information from %1$s', [$name . '/song.gp']));
+        }
+        $xml = simplexml_load_string($text);
+        if ($xml === false) {
+            throw new Exception($this->l->t('Could not read the score information from %1$s', [$name . '/song.gp']));
+        }
+
+        $info = [];
+        foreach ($xml->children() as $key => $child) {
+            if ($key === 'Score') {
+                foreach ($child->children() as $k => $v) {
+                    if (in_array($k, ['Title', 'Artist', 'SubTitle', 'Album', 'Words', 'Music', 'Copyright', 'Tabber', 'Notices', 'Instructions'])) {
+                        if ($k === 'Tabber') { $k = 'Transcriber'; } // == tab in AlphaTab 1.2.3
+                        $info[strtolower($k)] = (string)$v;
+                    }
+                }
+                break;
+            }
+        }
+
+        return (object)$info;
     }
 }

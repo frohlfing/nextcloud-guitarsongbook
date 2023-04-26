@@ -145,15 +145,15 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import AppMain from './components/AppMain'
 import AppSettingsDialog from './components/AppSettingsDialog'
 import FileSelect from './components/FileSelect'
-import NcLoadingIcon from "@nextcloud/vue/dist/Components/NcLoadingIcon"
-import LoadingIcon from "vue-material-design-icons/Loading.vue"
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
+import LoadingIcon from 'vue-material-design-icons/Loading.vue'
 import PlusIcon from 'vue-material-design-icons/Plus'
 import ReloadIcon from 'vue-material-design-icons/Reload'
 import CogIcon from 'vue-material-design-icons/Cog'
-import PencilIcon from "vue-material-design-icons/Pencil.vue"
-import CheckmarkIcon from "vue-material-design-icons/Check.vue"
-import PrinterIcon from "vue-material-design-icons/Printer.vue"
-import EyeIcon from "vue-material-design-icons/Eye.vue"
+import PencilIcon from 'vue-material-design-icons/Pencil.vue'
+import CheckmarkIcon from 'vue-material-design-icons/Check.vue'
+import PrinterIcon from 'vue-material-design-icons/Printer.vue'
+import EyeIcon from 'vue-material-design-icons/Eye.vue'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -225,14 +225,14 @@ export default {
 	methods: {
     async saveScoreAsGP7(score, filename) {
       // create file
-      const exporter = new alphaTab.exporter.Gp7Exporter();
-      const settings = new alphaTab.Settings();
-      const bytes = exporter.export(score, settings); // will return a Uint8Array
-      const blob = new Blob([bytes]);
+      const exporter = new alphaTab.exporter.Gp7Exporter()
+      const settings = new alphaTab.Settings()
+      const bytes = exporter.export(score, settings) // will return a Uint8Array
+      const blob = new Blob([bytes])
 
-      // upload file
+      // upload file and create a database entry
       //const csrf = document.querySelector('meta[name="csrf-token"]')?.content || null;
-      const response = await fetch(generateUrl('/apps/guitarsongbook/files'),{
+      const response = await fetch(generateUrl('/apps/guitarsongbook/songs/file'),{
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -243,30 +243,13 @@ export default {
         body: blob,
       });
       if (!response.ok) {  // status ist nicht 200-299?
-        const isJson = response.headers.get('content-type')?.includes('application/json');
-        const message = isJson ? await response.json() : `An error has occured: ${response.status}`;
-        throw new Error(message);
+        const isJson = response.headers.get('content-type')?.includes('application/json')
+        const message = isJson ? await response.json() : `An error has occured: ${response.status}`
+        throw new Error(message)
       }
-      const name = await response.json();
 
-      // save the database entity
-      const data = {
-        name: name,
-        title: score.title,
-        artist: score.artist,
-        subtitle: score.subtitle,
-        album: score.album,
-        words: score.words,
-        music: score.music,
-        copyright: score.copyright,
-        transcriber: score.transcriber,
-        notice: score.notice,
-        instructions: score.instructions
-      }
-      const response2 = await axios.post(generateUrl('/apps/guitarsongbook/songs'), data)
-
-      // return the new song entry
-      return response2.data
+      // return the new database entry
+      return response.json()
     },
 
     /**
@@ -278,9 +261,16 @@ export default {
       this.updating = true
       const name = t('guitarsongbook', 'New Song')
       try {
-        const api = new alphaTab.AlphaTabApi(document.createElement('div'), { useWorkers: false })
-        api.tex(`\\title "${name}" .`);
-        const song = await this.saveScoreAsGP7(api.score, api.score.title + '.gp')
+        // Variante 1 (Datei clientseitig erstellen):
+        //const api = new alphaTab.AlphaTabApi(document.createElement('div'), { useWorkers: false })
+        //api.tex(`\\title "${name}" .`);
+        //const song = await this.saveScoreAsGP7(api.score, api.score.title + '.gp')
+        //this.songs.push(song)
+        //this.currentSongId = song.id
+
+        // Variante 2 (Datei serverseitig erstllen):
+        const response = await axios.post(generateUrl('/apps/guitarsongbook/songs'), { name: name })
+        const song = response.data
         this.songs.push(song)
         this.currentSongId = song.id
       }
@@ -320,7 +310,6 @@ export default {
 		async deleteSong(song) {
       this.updating = true
 			try {
-        //await axios.delete(generateUrl(`/apps/guitarsongbook/files/${song.name}`))
 				await axios.delete(generateUrl(`/apps/guitarsongbook/songs/${song.id}`))
 				this.songs.splice(this.songs.indexOf(song), 1)
         if (this.currentSongId === song.id) {

@@ -32,8 +32,8 @@ use OCP\AppFramework\Db\Entity;
  * @method setCopyright(?string $copyright): void
  * @method getTranscriber(): ?string
  * @method setTranscriber(?string $transcriber): void
- * @method getNotice(): ?string
- * @method setNotice(?string $notice): void
+ * @method getNotices(): ?string
+ * @method setNotices(?string $notices): void
  * @method getInstructions(): ?string
  * @method setInstructions(?string $instructions): void
  * @method getCreated(): string
@@ -53,7 +53,7 @@ class Song extends Entity implements JsonSerializable
 	protected ?string $music = null;
 	protected ?string $copyright = null;
 	protected ?string $transcriber = null;
-	protected ?string $notice = null;
+	protected ?string $notices = null;
 	protected ?string $instructions = null;
 	protected string $created = '';
 	protected string $updated = '';
@@ -100,8 +100,8 @@ class Song extends Entity implements JsonSerializable
             'words' => $this->words,
             'music' => $this->music,
             'copyright' => $this->copyright,
-            'transcriber' => $this->transcriber,
-            'notice' => $this->notice,
+            'transcriber' => $this->transcriber, // == 'Tabber' in XML V.7 == 'tab' in AlphaTab 1.2.3
+            'notices' => $this->notices,
             'instructions' => $this->instructions,
             'created' => $this->created,
             'updated' => $this->created,

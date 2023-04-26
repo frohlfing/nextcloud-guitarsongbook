@@ -58,7 +58,7 @@ export default {
 	},
 	computed: {
     gpFile() {
-      return this.currentSong?.name.length ? generateUrl('/apps/guitarsongbook/files/' + encodeURIComponent(this.currentSong.name)) : null
+      return this.currentSong ? generateUrl('/apps/guitarsongbook/songs/' + encodeURIComponent(this.currentSong.id) + '/file') : null
     }
 	},
 	methods: {

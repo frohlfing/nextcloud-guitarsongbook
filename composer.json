@@ -36,6 +36,8 @@
 		}
 	},
   "require": {
-    "ext-json": "*"
+    "ext-json": "*",
+    "ext-zip": "*",
+    "ext-simplexml": "*"
   }
 }

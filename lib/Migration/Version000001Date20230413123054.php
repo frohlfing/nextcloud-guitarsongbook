@@ -40,11 +40,7 @@ class Version000001Date20230413123054 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
-        // ---------------------------------------
-        // guitarsongbook
-        // ---------------------------------------
-
-		if ($schema->hasTable('guitarsongbook')) {
+		if ($schema->hasTable('guitarsongbook')) { // Don’t use table name longer than 23 characters. => ok!
             $table = $schema->getTable('guitarsongbook');
         }
         else {
@@ -69,7 +65,7 @@ class Version000001Date20230413123054 extends SimpleMigrationStep {
         }
 
         // Song Information (optional)
-        foreach (['title', 'artist', 'subtitle', 'album', 'words', 'music', 'copyright', 'transcriber', 'notice', 'instructions'] as $column) {
+        foreach (['title', 'artist', 'subtitle', 'album', 'words', 'music', 'copyright', 'transcriber', 'notices', 'instructions'] as $column) {
             if (!$table->hasColumn($column)) {
                 $table->addColumn($column, 'string', [
                     'notnull' => false,
@@ -87,43 +83,6 @@ class Version000001Date20230413123054 extends SimpleMigrationStep {
         if (!$table->hasColumn('updated')) {
             $table->addColumn('updated', 'datetime', [
                 'notnull' => false,
-            ]);
-        }
-
-        // ---------------------------------------
-        // guitarsongbook_shots
-        // ---------------------------------------
-
-        if ($schema->hasTable('guitarsongbook_shots')) { // Don’t use table name longer than 23 characters. => ok!
-            $table = $schema->getTable('guitarsongbook_shots');
-        }
-        else {
-            $table = $schema->createTable('guitarsongbook_shots');
-            $table->addColumn('id', 'integer', [
-                'autoincrement' => true,
-                'notnull' => true,
-            ]);
-            $table->setPrimaryKey(['id']);
-
-            $table->addColumn('song_id', 'integer', [
-                'notnull' => true,
-            ]);
-            $table->addIndex(['song_id'], 'guitarsongbook_shots_index');
-
-            $table->addColumn('index', 'integer', [
-                'notnull' => true,
-            ]);
-
-            $table->addColumn('url', 'string', [
-                'notnull' => true,
-                'length' => 255
-            ]);
-        }
-
-        if (!$table->hasColumn('text')) {
-            $table->addColumn('text', 'string', [
-                'notnull' => false,
-                'length' => 255
             ]);
         }
 
