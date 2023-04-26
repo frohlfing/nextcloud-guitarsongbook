@@ -55,16 +55,16 @@ class FileService {
         // create the folder
         $basename = pathinfo($filename, PATHINFO_FILENAME);
         $path = $this->storage->getFullPath() . '/' . $basename;
-        //if (is_dir($path)) { // todo hochzählen
-            //throw new AlreadyExistsException($this->l->t('File already exists'));
-        //}
+        if (is_dir($path)) {
+            throw new AlreadyExistsException($this->l->t('Folder %1$s already exists', [$basename]));
+        }
         if (!is_dir($path) && mkdir($path) === false) {
-            throw new Exception($this->l->t('Unable to create the folder'));
+            throw new Exception($this->l->t('Unable to create the folder %1$s', [$basename]));
         }
 
         // save the file
         if (file_put_contents($path . '/song.gp', $bytes, LOCK_EX) === false) {
-            throw new Exception($this->l->t('Unable to save the file'));
+            throw new Exception($this->l->t('Unable to save the file %1s$', [$basename .'/song.gp']));
         }
 
         return $basename;
@@ -99,26 +99,58 @@ class FileService {
         $basename = pathinfo($filename, PATHINFO_FILENAME);
         $path = $this->storage->getFullPath() . '/' . $basename;
         if (is_dir($path)) {
-            throw new AlreadyExistsException($this->l->t('File already exists'));
+            throw new AlreadyExistsException($this->l->t('Folder %1$s already exists', [$basename]));
         }
-        if (!is_dir($path) && mkdir($path) === false) { // todo hochzählen
-            throw new Exception($this->l->t('Unable to create the folder'));
+        if (!is_dir($path) && mkdir($path) === false) {
+            throw new Exception($this->l->t('Unable to create the folder %1$s', [$basename]));
         }
 
         // save the file
         if (!move_uploaded_file($file['tmp_name'], $path . '/song.gp')) {
-            throw new Exception($this->l->t('Unable to save the file'));
+            throw new Exception($this->l->t('Unable to save the file %1s$', [$basename .'/song.gp']));
         }
 
         return $basename;
     }
 
     /**
-     * Get the raw contents of the Guitar Pro file.
+     * Rename the folder.
+     *
+     * @param string $name
+     * @param string $newName
+     * @return string
+     * @throws NotFoundException
+     * @throws Exception
+     */
+    public function rename(string $name, string $newName): string
+    {
+        // todo wenn dateinamen nur casesensitive unerschiedlich sind, zwischenschritt einbauen
+
+        // validate
+        if (empty($name) || empty($newName)) {
+            throw new InvalidArgumentException($this->l->t('Name required!'));
+        }
+        $path = $this->storage->getFullPath($name);
+        $newPath = $this->storage->getFullPath() . '/' . $newName;
+        if (is_dir($newPath)) {
+            throw new AlreadyExistsException($this->l->t('Folder %1$s already exists', [$newName]));
+        }
+
+        // rename the folder
+        if (rename($path, $newPath) === false) {
+            throw new Exception($this->l->t('Unable to rename the folder %1$s to %2$s!', [$name, $newName]));
+        }
+
+        return $name;
+    }
+
+    /**
+     * Remove the given folder if exists.
      *
      * @param string $name
      * @return string
      * @throws NotFoundException
+     * @throws Exception
      */
     public function delete(string $name): string
     {
@@ -128,15 +160,17 @@ class FileService {
         }
         $path = $this->storage->getFullPath($name);
 
-        // remove the folder
-        $files = array_diff(scandir($path), ['.', '..']);
-        foreach ($files as $file) {
-            if (unlink($path . '/' . $file) === false) {
-                throw new Exception($this->l->t('Unable to delete the file %1$s!', [$file]));
+        // remove the folder if exists
+        if (is_dir($path)) {
+            $files = array_diff(scandir($path), ['.', '..']);
+            foreach ($files as $file) {
+                if (unlink($path . '/' . $file) === false) {
+                    throw new Exception($this->l->t('Unable to delete the file %1$s', [$name . '/' . $file]));
+                }
             }
-        }
-        if (rmdir($path) === false) {
-            throw new Exception($this->l->t('Unable to delete the folder %1$s!', [$name]));
+            if (rmdir($path) === false) {
+                throw new Exception($this->l->t('Unable to delete the folder %1$s', [$name]));
+            }
         }
 
         return $name;

@@ -36,7 +36,8 @@ return [
 		['name' => 'file#load',    'url' => '/files/{name}',    'verb' => 'GET'],
 		['name' => 'file#save',    'url' => '/files',           'verb' => 'POST'],
 		['name' => 'file#upload',  'url' => '/files/upload',    'verb' => 'POST'],
-		['name' => 'file#destroy', 'url' => '/files/{name}',    'verb' => 'DELETE'],
+		//['name' => 'file#rename',  'url' => '/files/{name}',    'verb' => 'PUT'],
+		//['name' => 'file#destroy', 'url' => '/files/{name}',    'verb' => 'DELETE'],
 
         // SongApiController
 		['name' => 'song_api#preflighted_cors', 'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']], // für CORS erforderlich

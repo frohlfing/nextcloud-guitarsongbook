@@ -71,19 +71,35 @@ class FileController extends Controller
         return new DataResponse($name, Http::STATUS_OK);
     }
 
-    /**
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     */
-    public function destroy(string $name): DataResponse
-    {
-        try {
-            $name = $this->fileService->delete($name);
-        }
-        catch (Exception $e) {
-            return new DataResponse($e->getMessage(), Http::STATUS_BAD_REQUEST);
-        }
+//    /**
+//     * @NoAdminRequired
+//     * @NoCSRFRequired
+//     */
+//    public function rename(string $name, string $newName): DataResponse
+//    {
+//        try {
+//            $name = $this->fileService->rename($name, $newName);
+//        }
+//        catch (Exception $e) {
+//            return new DataResponse($e->getMessage(), Http::STATUS_BAD_REQUEST);
+//        }
+//
+//        return new DataResponse($name, Http::STATUS_OK);
+//    }
 
-        return new DataResponse($name, Http::STATUS_OK);
-    }
+//    /**
+//     * @NoAdminRequired
+//     * @NoCSRFRequired
+//     */
+//    public function destroy(string $name): DataResponse
+//    {
+//        try {
+//            $name = $this->fileService->delete($name);
+//        }
+//        catch (Exception $e) {
+//            return new DataResponse($e->getMessage(), Http::STATUS_BAD_REQUEST);
+//        }
+//
+//        return new DataResponse($name, Http::STATUS_OK);
+//    }
 }

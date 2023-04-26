@@ -71,23 +71,23 @@ export default {
      * __@param {object} song Song object
      */
 		async updateSong() {
-      console.log('SAVE', this.currentSong)
+      console.log('AppMain: SAVE UPDATE SONG', this.currentSong)
 			this.saving = true
 			try {
         await axios.put(generateUrl(`/apps/guitarsongbook/songs/${this.currentSong.id}`), this.currentSong)
-        console.log('SAVED', this.currentSong)
+        console.log('AppMain: UPDATE SONG SAVED', this.currentSong)
         this.$emit('songUpdated', this.currentSong);
 			}
       catch (e) {
-				console.error(e)
+				console.error(e.response ? e.response.data : e.message)
 				showError(t('guitarsongbook', 'Could not save the song'))
 			}
 			this.saving = false
-		},
+		}
 	},
   watch: {
     song(value) {
-      console.log('OPEN', value)
+      console.log('AppMain: WATCH song', value)
       this.currentSong = value
     }
   }

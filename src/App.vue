@@ -217,7 +217,7 @@ export default {
 			this.songs = response.data
 		}
     catch (e) {
-      console.error(e.response ? e.response.data : e.message)
+      console.log(e.response ? e.response.data : e.message)
 			showError(t('guitarsongbook', 'Could not fetch the songbook'))
 		}
 		this.loading = false
@@ -285,7 +285,7 @@ export default {
         this.currentSongId = song.id
       }
       catch (e) {
-        console.error(e.response ? e.response.data : e.message)
+        console.log(e.response ? e.response.data : e.message)
         showError(t('guitarsongbook', 'Could not create the song: {message}', e))
       }
       this.updating = false
@@ -297,7 +297,6 @@ export default {
     async importMusicFile(file) {
       this.updating = true
       try {
-        // import file
         const buf = await file.arrayBuffer();
         const bytes = new Uint8Array(buf);
         const settings = new alphaTab.Settings();
@@ -308,7 +307,7 @@ export default {
         this.currentSongId = song.id
       }
       catch (e) {
-        console.error(e.response ? e.response.data : e.message)
+        console.log(e.response ? e.response.data : e.message)
         showError(t('guitarsongbook', 'Could not import the file: {message}', e))
       }
       this.updating = false
@@ -321,7 +320,7 @@ export default {
 		async deleteSong(song) {
       this.updating = true
 			try {
-        await axios.delete(generateUrl(`/apps/guitarsongbook/files/${song.name}`))
+        //await axios.delete(generateUrl(`/apps/guitarsongbook/files/${song.name}`))
 				await axios.delete(generateUrl(`/apps/guitarsongbook/songs/${song.id}`))
 				this.songs.splice(this.songs.indexOf(song), 1)
         if (this.currentSongId === song.id) {
@@ -330,7 +329,7 @@ export default {
 				showSuccess(t('guitarsongbook', 'Song deleted'))
 			}
       catch (e) {
-        console.error(e.response ? e.response.data : e.message)
+        console.log(e.response ? e.response.data : e.message)
 				showError(t('guitarsongbook', 'Could not delete the song'))
 			}
       this.updating = false

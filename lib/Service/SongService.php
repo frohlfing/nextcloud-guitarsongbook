@@ -19,6 +19,7 @@ class SongService
 {
 	private SongMapper $songMapper;
 	//private ShotMapper $shotMapper;
+    private FileService $fileService;
 
 //	public function __construct(SongMapper $songMapper, ShotMapper $shotMapper)
 //    {
@@ -26,9 +27,10 @@ class SongService
 //		$this->shotMapper = $shotMapper;
 //	}
 
-    public function __construct(SongMapper $songMapper)
+    public function __construct(SongMapper $songMapper, FileService $fileService)
     {
         $this->songMapper = $songMapper;
+        $this->fileService = $fileService;
     }
 
     /**
@@ -118,6 +120,9 @@ class SongService
 
 		try {
 			$song = $this->songMapper->find($id, $userId);
+            if ($song->getName() !== $name) {
+                $this->fileService->rename($song->getName(), $name);
+            }
 			$song->setName($name);
 			$song->setTitle($title);
             $song->setUpdated($now);
@@ -143,6 +148,7 @@ class SongService
 //                $this->shotMapper->delete($song);
 //            }
 			$song = $this->songMapper->find($id, $userId);
+            $this->fileService->delete($song->getName());
 			$this->songMapper->delete($song);
 			return $song;
 		}

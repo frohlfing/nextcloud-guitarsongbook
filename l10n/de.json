@@ -11,16 +11,18 @@
     "Unable to open the song %1$s.":  "Konnte den Song %1$s nicht öffnen.",
     "Unable to create the song %1$s.":  "Konnte den Song %1$s nicht anlegen.",
     "Unable to save the song %1$s.":  "Konnte den Song %1$s nicht speichern.",
-    "Unable to delete the song %1$s.":  "Konnte den Song %1$s nicht löschen.",
     "Unable to rename the song %1$s to %2$s.": "Konnte den Song %1$s nicht nach %2$s umbenennen.",
 
     "// FileService": "",
     "Filename required": "Dateiname erforderlich",
     "File required": "Datei erforderlich",
     "File is too large": "Die Datei ist zu groß.",
-    "Guitar Pro 7 File expected": "Datei im  Guitar Pro 7 erwartet.",
-    "File already exists": "Die Datei existiert bereits.",
-    "Unable to create the folder":  "Konnte den Ordner nicht anlegen.",
-    "Unable to save the file": "Konnte die Datei nicht speichern."
+    "Guitar Pro 7 File expected": "Datei im  Guitar Pro 7 Format erwartet.",
+    "Folder %1$s already exists": "Der Odner %1$s existiert bereits.",
+    "Unable to create the folder %1$s":  "Konnte den Ordner %1$s nicht anlegen.",
+    "Unable to rename the folder %1$s to %2$s":  "Konnte den Ordner %1$s nicht nach %2$s umbenennen.",
+    "Unable to save the file %1s$": "Konnte die Datei nicht speichern.",
+    "Unable to delete the file %1$s":  "Konnte die Datei %1$s nicht löschen.",
+    "Unable to delete the folder %1$s":  "Konnte den Ordner %1$s nicht löschen."
 
 }, "pluralForm" :"nplurals=2; plural=(n != 1);"}
