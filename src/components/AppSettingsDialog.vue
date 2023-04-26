@@ -1,4 +1,3 @@
-<!--suppress CssUnresolvedCustomProperty -->
 <template>
   <NcAppSettingsDialog
       :open.sync="isOpen"
@@ -133,7 +132,6 @@ export default {
 	},
 	methods: {
     close() {
-      console.log('CLOSE DIALOG')
       this.isOpen = false
       this.$emit('close');
     },
@@ -144,7 +142,6 @@ export default {
 	},
   watch: {
     open(value) {
-      console.log('OPEN DIALOG', value)
       this.isOpen = value
     }
   }

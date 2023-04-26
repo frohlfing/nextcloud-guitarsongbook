@@ -7,16 +7,20 @@
     "// SongService  (wird noch nicht verwendet": "",
     "Name required": "Name ist erforderlich.",
     "Title required": "Titel ist erforderlich-",
-    "Title %1s already exists": "Der Titel %1s existiert bereits.",
-    "Unable to open the song %1s.":  "Konnte den Song %1s nicht öffnen.",
-    "Unable to create the song %1s.":  "Konnte den Song %1s nicht anlegen.",
-    "Unable to save the song %1s.":  "Konnte den Song %1s nicht speichern.",
-    "Unable to delete the song %1s.":  "Konnte den Song %1s nicht löschen.",
-    "Unable to rename the song %1s to %2s.": "Konnte den Song %1s nicht nach %2s umbenennen.",
+    "Title %1$s already exists": "Der Titel %1$s existiert bereits.",
+    "Unable to open the song %1$s.":  "Konnte den Song %1$s nicht öffnen.",
+    "Unable to create the song %1$s.":  "Konnte den Song %1$s nicht anlegen.",
+    "Unable to save the song %1$s.":  "Konnte den Song %1$s nicht speichern.",
+    "Unable to delete the song %1$s.":  "Konnte den Song %1$s nicht löschen.",
+    "Unable to rename the song %1$s to %2$s.": "Konnte den Song %1$s nicht nach %2$s umbenennen.",
 
-    "// Wird verwendet": "",
-    "File already exists.": "Die Datei existiert bereits.",
-    "Sorry, your file is too large.": "Sorry, die Datei ist zu groß.",
-    "There was an error uploading your file.": "Beim Hochladen deiner Datei ist ein Fehler aufgetreten."
+    "// FileService": "",
+    "Filename required": "Dateiname erforderlich",
+    "File required": "Datei erforderlich",
+    "File is too large": "Die Datei ist zu groß.",
+    "Guitar Pro 7 File expected": "Datei im  Guitar Pro 7 erwartet.",
+    "File already exists": "Die Datei existiert bereits.",
+    "Unable to create the folder":  "Konnte den Ordner nicht anlegen.",
+    "Unable to save the file": "Konnte die Datei nicht speichern."
 
 }, "pluralForm" :"nplurals=2; plural=(n != 1);"}

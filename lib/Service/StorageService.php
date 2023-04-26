@@ -41,8 +41,8 @@ class StorageService
      */
     public function getFullPath(string $folder = ''): string
     {
-        /** @noinspection PhpUndefinedClassInspection */
-        $dataPath = OC::$SERVERROOT . '/data';
+        /** @noinspection PhpUndefinedClassInspection, PhpFullyQualifiedNameUsageInspection */
+        $dataPath = \OC::$SERVERROOT . '/data';
         $songsFolderName = $this->getSongsFolderName();
 
         return $dataPath . $this->homeFolder->get($songsFolderName . '/' . $folder)->getPath();

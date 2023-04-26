@@ -33,10 +33,12 @@ return [
 		['name' => 'page#index',  'url' => '/',                'verb' => 'GET'],
 
         // FileController
-		['name' => 'file#load',   'url' => '/load/{filename}', 'verb' => 'GET'],
-		['name' => 'file#upload', 'url' => '/upload',          'verb' => 'POST'],
+		['name' => 'file#load',    'url' => '/files/{name}',    'verb' => 'GET'],
+		['name' => 'file#save',    'url' => '/files',           'verb' => 'POST'],
+		['name' => 'file#upload',  'url' => '/files/upload',    'verb' => 'POST'],
+		['name' => 'file#destroy', 'url' => '/files/{name}',    'verb' => 'DELETE'],
 
         // SongApiController
-		['name' => 'song_api#preflighted_cors', 'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']], // todo wo wird diese Route denn verwendet?
+		['name' => 'song_api#preflighted_cors', 'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']], // für CORS erforderlich
 	]
 ];

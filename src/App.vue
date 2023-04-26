@@ -7,33 +7,30 @@
 	<NcContent app-name="guitarsongbook">
 		<NcAppNavigation>
       <template #list>
-        <NcAppNavigationNew v-if="!loading"
-            :text="t('guitarsongbook', 'Create song')"
-            :disabled="false"
+        <NcAppNavigationNew
             button-id="new-guitarsongbook-button"
             button-class="icon-add"
-            @click="newSong">
+            :text="t('guitarsongbook', 'Create song')"
+            :disabled="loading || updating"
+            @click="createSong">
           <template #icon>
             <PlusIcon :size="20" />
           </template>
         </NcAppNavigationNew>
-        <FileUpload
-            :text="t('guitarsongbook', 'Upload Guitar Pro File')"
+        <FileSelect
+            :text="t('guitarsongbook', 'Import Music File')"
             accept=".gp3, .gp4, .gp5, .gpx, .gp, .cap, .xml, .txt"
-            @uploaded="fileUploaded"/>
+            @change="importMusicFile"/>
         <ul>
-          <NcAppNavigationItem v-for="song in songs"
+          <NcAppNavigationItem
+            v-for="song in songs"
             :key="song.id"
             :title="song.name ? song.name : t('guitarsongbook', 'New song')"
             :class="{active: currentSongId === song.id}"
+            :deacitve="loading || updating"
             @click="openSong(song)">
             <template #actions>
-              <NcActionButton v-if="song.id === -1"
-                icon="icon-close"
-                @click="cancelNewSong(song)">
-                {{ t('guitarsongbook', 'Discard') }}
-              </NcActionButton>
-              <NcActionButton v-else
+              <NcActionButton
                 icon="icon-delete"
                 @click="deleteSong(song)">
                 {{ t('guitarsongbook', 'Delete') }}
@@ -91,7 +88,7 @@
           <NcActionButton
               class="action-button"
               v-if="true"
-              :icon="false ? 'icon-loading-small' : 'icon-history'"
+              :icon="loading ? 'icon-loading-small' : 'icon-history'"
               :aria-label="t('guitarsongbook', 'Reload')"
               @click="">
             {{ t("guitarsongbook", "Reload") }}
@@ -127,39 +124,14 @@
           </NcActionButton>
         </NcActions>
 			</div>
-			<div class="main-wrapper">
-
-        <div class="at-track-list"></div>
-
-				<AlphaTab
-            :filename="filename"
-            :tex="alphaTex"
-            @score-loaded="scoreLoaded"
-        />
-				<div v-if="currentSong">
-					<input ref="name" type="text"
-              v-model="currentSong.name"
-						  :disabled="updating">
-					<input type="text"
-              v-model="currentSong.title"
-              :disabled="updating" />
-					<input type="button" class="primary"
-						  :value="t('guitarsongbook', 'Save')"
-						  :disabled="updating || !savePossible"
-						  @click="saveSong">
-				</div>
-				<div v-else id="emptycontent">
-					<div class="icon-file" />
-					<h2>
-						{{
-							t('guitarsongbook', 'Create a song to get started!') }}
-					</h2>
-				</div>
-			</div>
+			<AppMain
+          :song="currentSong"
+          @saved="songUpdated"/>
 		</NcAppContent>
 	</NcContent>
 </template>
 
+<!--suppress ExceptionCaughtLocallyJS -->
 <script>
 import NcContent from '@nextcloud/vue/dist/Components/NcContent'
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation'
@@ -170,9 +142,9 @@ import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
+import AppMain from './components/AppMain'
 import AppSettingsDialog from './components/AppSettingsDialog'
-import AlphaTab from './components/AlphaTab'
-import FileUpload from './components/FileUpload'
+import FileSelect from './components/FileSelect'
 import NcLoadingIcon from "@nextcloud/vue/dist/Components/NcLoadingIcon"
 import LoadingIcon from "vue-material-design-icons/Loading.vue"
 import PlusIcon from 'vue-material-design-icons/Plus'
@@ -199,9 +171,9 @@ export default {
 		NcActionButton,
 		NcActionInput,
 		NcButton,
+    AppMain,
     AppSettingsDialog,
-		AlphaTab,
-    FileUpload,
+    FileSelect,
     NcLoadingIcon,
     LoadingIcon,
     PlusIcon,
@@ -216,10 +188,9 @@ export default {
 		return {
 			songs: [],
 			currentSongId: null,
-			updating: false,
 			loading: true,
+      updating: false,
       filename: null,
-      alphaTex: null,
       score: null,
       settingsOpen: false,
 		}
@@ -236,14 +207,6 @@ export default {
 			}
 			return this.songs.find((song) => song.id === this.currentSongId)
 		},
-		/**
-		 * Returns true if a song is selected and its title is not empty
-		 *
-		 * @return {boolean}
-		 */
-		savePossible() {
-			return this.currentSong && this.currentSong.title !== ''
-		},
 	},
 	/**
 	 * Fetch list of songs when the component is loaded
@@ -252,134 +215,151 @@ export default {
 		try {
 			const response = await axios.get(generateUrl('/apps/guitarsongbook/songs'))
 			this.songs = response.data
-		} catch (e) {
-			console.error(e)
-			showError(t('guitarsongbook', 'Could not fetch songs'))
 		}
-    //this.filename = 'canon.gp'
-    this.alphaTex = "\\title 'Test' . 3.3.4"
+    catch (e) {
+      console.error(e.response ? e.response.data : e.message)
+			showError(t('guitarsongbook', 'Could not fetch the songbook'))
+		}
 		this.loading = false
 	},
-
 	methods: {
-    fileUploaded(filename) {
-      this.filename = filename
-    },
-    scoreLoaded(score) {
-      console.log('scoreLoaded', score)
-      this.score = score
+    async saveScoreAsGP7(score, filename) {
+      // create file
+      const exporter = new alphaTab.exporter.Gp7Exporter();
+      const settings = new alphaTab.Settings();
+      const bytes = exporter.export(score, settings); // will return a Uint8Array
+      const blob = new Blob([bytes]);
+
+      // upload file
+      //const csrf = document.querySelector('meta[name="csrf-token"]')?.content || null;
+      const response = await fetch(generateUrl('/apps/guitarsongbook/files'),{
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          //'X-CSRF-TOKEN': csrf,
+          //'Authorization': 'Bearer ' + api_token,
+          'Content-Disposition': 'attachment; filename="' + filename + '"',
+        },
+        body: blob,
+      });
+      if (!response.ok) {  // status ist nicht 200-299?
+        const isJson = response.headers.get('content-type')?.includes('application/json');
+        const message = isJson ? await response.json() : `An error has occured: ${response.status}`;
+        throw new Error(message);
+      }
+      const name = await response.json();
+
+      // save the database entity
+      const data = {
+        name: name,
+        title: score.title,
+        artist: score.artist,
+        subtitle: score.subtitle,
+        album: score.album,
+        words: score.words,
+        music: score.music,
+        copyright: score.copyright,
+        transcriber: score.transcriber,
+        notice: score.notice,
+        instructions: score.instructions
+      }
+      const response2 = await axios.post(generateUrl('/apps/guitarsongbook/songs'), data)
+
+      // return the new song entry
+      return response2.data
     },
 
     /**
-		 * Create a new song and focus the song content field automatically
-		 *
-		 * @param {object} song Song object
-		 */
-		openSong(song) {
-			if (this.updating) {
-				return
-			}
-			this.currentSongId = song.id
-			this.$nextTick(() => {
-				this.$refs.name.focus()
-			})
-		},
-		/**
-		 * Action tiggered when clicking the save button
-		 * create a new song or save
-		 */
-		saveSong() {
-			if (this.currentSongId === -1) {
-				this.createSong(this.currentSong)
-			} else {
-				this.updateSong(this.currentSong)
-			}
-		},
-		/**
-		 * Create a new song and focus the song content field automatically
-		 * The song is not yet saved, therefore an id of -1 is used until it
-		 * has been persisted in the backend
-		 */
-		newSong() {
-			if (this.currentSongId !== -1) {
-				this.currentSongId = -1
-				this.songs.push({
-					id: -1,
-					name: '',
-					title: '',
-				})
-				this.$nextTick(() => {
-					this.$refs.name.focus()
-				})
-			}
-		},
-		/**
-		 * Abort creating a new song
-		 */
-		cancelNewSong() {
-			this.songs.splice(this.songs.findIndex((song) => song.id === -1), 1)
-			this.currentSongId = null
-		},
-		/**
-		 * Create a new song by sending the information to the server
-		 *
-		 * @param {object} song Song object
-		 */
-		async createSong(song) {
-			this.updating = true
-			try {
-				const response = await axios.post(generateUrl('/apps/guitarsongbook/songs'), song)
-				const index = this.songs.findIndex((match) => match.id === this.currentSongId)
-				this.$set(this.songs, index, response.data)
-				this.currentSongId = response.data.id
-			}
+     * Create a new song by sending the information to the server
+     *
+     * __@param {object} song Song object
+     */
+    async createSong() {
+      this.updating = true
+      const name = t('guitarsongbook', 'New Song')
+      try {
+        const api = new alphaTab.AlphaTabApi(document.createElement('div'), { useWorkers: false })
+        api.tex(`\\title "${name}" .`);
+        const song = await this.saveScoreAsGP7(api.score, api.score.title + '.gp')
+        this.songs.push(song)
+        this.currentSongId = song.id
+      }
       catch (e) {
-				console.error(e)
-				showError(t('guitarsongbook', 'Could not create the song'))
-			}
-			this.updating = false
-		},
-		/**
-		 * Update an existing song on the server
-		 *
-		 * @param {object} song Song object
-		 */
-		async updateSong(song) {
-			this.updating = true
-			try {
-				await axios.put(generateUrl(`/apps/guitarsongbook/songs/${song.id}`), song)
-			}
+        console.error(e.response ? e.response.data : e.message)
+        showError(t('guitarsongbook', 'Could not create the song: {message}', e))
+      }
+      this.updating = false
+    },
+
+    /**
+     * @param file selected file from <input type="file">
+     */
+    async importMusicFile(file) {
+      this.updating = true
+      try {
+        // import file
+        const buf = await file.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        const settings = new alphaTab.Settings();
+        const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(bytes, settings);
+        const filename = file.name.replace(/\.[^/.]+$/, '.gp');  // change file extension
+        const song = await this.saveScoreAsGP7(score, filename)
+        this.songs.push(song)
+        this.currentSongId = song.id
+      }
       catch (e) {
-				console.error(e)
-				showError(t('guitarsongbook', 'Could not update the song'))
-			}
-			this.updating = false
-		},
+        console.error(e.response ? e.response.data : e.message)
+        showError(t('guitarsongbook', 'Could not import the file: {message}', e))
+      }
+      this.updating = false
+    },
 		/**
 		 * Delete a song, remove it from the frontend and show a hint
 		 *
 		 * @param {object} song Song object
 		 */
 		async deleteSong(song) {
+      this.updating = true
 			try {
+        await axios.delete(generateUrl(`/apps/guitarsongbook/files/${song.name}`))
 				await axios.delete(generateUrl(`/apps/guitarsongbook/songs/${song.id}`))
 				this.songs.splice(this.songs.indexOf(song), 1)
-				if (this.currentSongId === song.id) {
+        if (this.currentSongId === song.id) {
 					this.currentSongId = null
 				}
 				showSuccess(t('guitarsongbook', 'Song deleted'))
 			}
       catch (e) {
-				console.error(e)
+        console.error(e.response ? e.response.data : e.message)
 				showError(t('guitarsongbook', 'Could not delete the song'))
 			}
+      this.updating = false
 		},
+    /**
+     * Refresh the updated song in the list
+     *
+     * @param song
+     */
+    songUpdated(song) {
+      const index = this.songs.findIndex((match) => match.id === song.id)
+      this.$set(this.songs, index, song)
+      this.currentSongId = song.id
+    },
+    /**
+     * Create a new song and focus the song content field automatically
+     *
+     * @param {object} song Song object
+     */
+    openSong(song) {
+      this.currentSongId = song.id
+      // this.$nextTick(() => {
+      // 	this.$refs.name.focus()
+      // })
+    },
     // ---------------------------
     // Settings
     // ---------------------------
     openSettingsDialog() {
-      // this.firstName = ''
-      this.lastName = ''
       this.settingsOpen = true
     },
     closeSettingsDialog() {
@@ -400,20 +380,6 @@ export default {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-}
-
-div.main-wrapper {
-  width: 100%;
-  padding: 1rem;
-}
-
-div.main-wrapper input[type='text'] {
-  width: 100%;
-}
-
-div.main-wrapper textarea {
-  flex-grow: 1;
-  width: 100%;
 }
 
 /* AppControls */

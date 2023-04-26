@@ -13,6 +13,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\StreamResponse;
+use OCP\Files\NotFoundException;
 use OCP\IRequest;
 
 class FileController extends Controller
@@ -26,12 +27,31 @@ class FileController extends Controller
 	}
 
     /**
+     * @param string $name Folder
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     * @throws NotFoundException
+     */
+    public function load(string $name): StreamResponse
+    {
+        return $this->fileService->file($name);
+    }
+
+    /**
      * @NoAdminRequired
      * @NoCSRFRequired
      */
-    public function load($filename): StreamResponse
+    public function save(): DataResponse
     {
-        return $this->fileService->file($filename);
+        try {
+            $bytes = file_get_contents('php://input');
+            $name = $this->fileService->saveRequestBodyAsFile($bytes);
+        }
+        catch (Exception $e) {
+            return new DataResponse($e->getMessage(), Http::STATUS_BAD_REQUEST);
+        }
+
+        return new DataResponse($name, Http::STATUS_OK);
     }
 
     /**
@@ -42,12 +62,28 @@ class FileController extends Controller
     {
         try {
             $file = $request->getUploadedFile('file');
-            $song = $this->fileService->saveUploadedFile($file);
+            $name = $this->fileService->saveUploadedFile($file);
         }
         catch (Exception $e) {
-            return new DataResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+            return new DataResponse($e->getMessage(), Http::STATUS_BAD_REQUEST);
         }
 
-        return new DataResponse($song, Http::STATUS_OK);
+        return new DataResponse($name, Http::STATUS_OK);
+    }
+
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function destroy(string $name): DataResponse
+    {
+        try {
+            $name = $this->fileService->delete($name);
+        }
+        catch (Exception $e) {
+            return new DataResponse($e->getMessage(), Http::STATUS_BAD_REQUEST);
+        }
+
+        return new DataResponse($name, Http::STATUS_OK);
     }
 }

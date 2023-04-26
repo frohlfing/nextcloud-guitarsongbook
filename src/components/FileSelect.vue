@@ -20,7 +20,7 @@
   </div>
 </template>
 
-<!--suppress ExceptionCaughtLocallyJS, JSCheckFunctionSignatures, JSUnusedLocalSymbols -->
+<!--suppress ExceptionCaughtLocallyJS, JSCheckFunctionSignatures, JSUnusedLocalSymbols, JSUnusedGlobalSymbols -->
 <script>
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
 import LoadingIcon from 'vue-material-design-icons/Loading'

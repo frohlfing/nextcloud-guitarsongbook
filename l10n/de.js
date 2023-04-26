@@ -15,12 +15,14 @@ OC.L10N.register("guitarsongbook",
     // App
     "Create a song to get started!": "Erstelle einen Song, um loszulegen!",
     "Create song": "Song erstellen",
-    "Upload Guitar Pro File": "Guitar Pro File hochladen",
+    "Import Music File": "Musik-Datei importieren",
     "New song": "Neuer Song",
 
-    "Could not fetch songs": "",
-    "Could not create the song": "Konnte den Song nicht anlegen.",
-    "Could not update the song": "Konnte den Song nicht speichern.",
+    "Could not fetch the songbook": "Konnte das Songbuch nicht laden.",
+    "Could not load the song": "Konnte den Song nicht laden.",
+    "Could not import the file: {message}": "Konnte die Datei nicht importieren: {message}",
+    "Could not create the song: {message}": "Konnte den Song nicht anlegen: {message}",
+    "Could not save the song": "Konnte den Song nicht speichern.",
     "Could not delete the song": "Konnte den Song nicht löschen.",
     "Song deleted" : "Song erfolgreich gelöscht.",
 

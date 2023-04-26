@@ -9,7 +9,7 @@ use Closure;
 
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
-use OCA\GuitarSongbook\Service\NoteNotFound;
+use OCA\GuitarSongbook\Service\SongNotFound;
 
 trait Errors
 {
@@ -19,9 +19,8 @@ trait Errors
 			return new DataResponse($callback());
 		}
         /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (NoteNotFound $e) {
-			$message = ['message' => $e->getMessage()];
-			return new DataResponse($message, Http::STATUS_NOT_FOUND);
+        catch (SongNotFound $e) {
+			return new DataResponse($e->getMessage(), Http::STATUS_NOT_FOUND);
 		}
 	}
 }

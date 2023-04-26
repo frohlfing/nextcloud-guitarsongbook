@@ -13,18 +13,23 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCA\GuitarSongbook\Db\Song;
 use OCA\GuitarSongbook\Db\SongMapper;
-use OCA\GuitarSongbook\Db\ShotMapper;
+//use OCA\GuitarSongbook\Db\ShotMapper;
 
 class SongService
 {
 	private SongMapper $songMapper;
-	private ShotMapper $shotMapper;
+	//private ShotMapper $shotMapper;
 
-	public function __construct(SongMapper $songMapper, ShotMapper $shotMapper)
+//	public function __construct(SongMapper $songMapper, ShotMapper $shotMapper)
+//    {
+//		$this->songMapper = $songMapper;
+//		$this->shotMapper = $shotMapper;
+//	}
+
+    public function __construct(SongMapper $songMapper)
     {
-		$this->songMapper = $songMapper;
-		$this->shotMapper = $shotMapper;
-	}
+        $this->songMapper = $songMapper;
+    }
 
     /**
      * @param string $userId
@@ -133,11 +138,10 @@ class SongService
     {
 		try {
             // delete Shots
-            $songs = $this->shotMapper->findAllOfSong($id, $userId);
-            foreach ($songs as $song) {
-                $this->shotMapper->delete($song);
-            }
-            // delete Songs
+//            $songs = $this->shotMapper->findAllOfSong($id, $userId);
+//            foreach ($songs as $song) {
+//                $this->shotMapper->delete($song);
+//            }
 			$song = $this->songMapper->find($id, $userId);
 			$this->songMapper->delete($song);
 			return $song;

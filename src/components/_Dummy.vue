@@ -49,7 +49,7 @@ export default {
     }
   },
   watch: {
-    filename(newFilename, oldFilename) {
+    filename(value, old) {
       console.log('filename has changed')
     }
   }
