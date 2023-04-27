@@ -6,7 +6,7 @@
 import { generateFilePath } from '@nextcloud/router'
 
 import Vue from 'vue'
-import App from './App'
+import App from './components/App'
 
 // eslint-disable-next-line
 __webpack_public_path__ = generateFilePath(appName, '', 'js/')

@@ -1,4 +1,3 @@
-<!--suppress CssUnresolvedCustomProperty -->
 <template>
 	<!--
     SPDX-FileCopyrightText: Frank Rohlfing <mail@frank-rohlfing.de>
@@ -50,110 +49,23 @@
         <AppSettingsDialog :open="settingsOpen" @close="closeSettingsDialog"/>
       </template>
     </NcAppNavigation>
-		<NcAppContent>
-			<div class="controls-wrapper">
-				<div class="location-wrapper">
-					<h2 class="location">
-            {{ t('guitarsongbook', 'New song') }}
-					</h2>
-				</div>
-        <NcButton
-            v-if="true"
-            type="primary"
-            :aria-label="t('guitarsongbook', 'Edit')"
-            @click="">
-          <template #icon>
-            <PencilIcon :size="20" />
-          </template>
-          {{ t("guitarsongbook", "Edit") }}
-        </NcButton>
-        <NcButton
-            type="primary"
-            v-if="true"
-            :aria-label="t('guitarsongbook', 'Save')"
-            @click="">
-          <template #icon>
-            <LoadingIcon
-                class="animation-rotate"
-                v-if="false"
-                :size="20"/>
-            <CheckmarkIcon v-else :size="20" />
-          </template>
-          {{ t('guitarsongbook', 'Save') }}
-        </NcButton>
-        <NcActions
-            class="overflow-menu"
-            v-if="true"
-            :force-menu="true">
-          <NcActionButton
-              class="action-button"
-              v-if="true"
-              :icon="loading ? 'icon-loading-small' : 'icon-history'"
-              :aria-label="t('guitarsongbook', 'Reload')"
-              @click="">
-            {{ t("guitarsongbook", "Reload") }}
-          </NcActionButton>
-          <NcActionButton
-              class="action-button"
-              v-if="true"
-              :aria-label="t('guitarsongbook', 'Print')"
-              @click="">
-            <template #icon="">
-              <printer-icon :size="20" />
-            </template>
-            {{ t('guitarsongbook', 'Print') }}
-          </NcActionButton>
-          <NcActionButton
-              icon="icon-delete"
-              class="action-button"
-              v-if="true"
-              :aria-label="t('guitarsongbook', 'Delete')"
-              @click="">
-            {{ t('guitarsongbook', 'Delete') }}
-          </NcActionButton>
-          <NcActionButton
-              class="action-button"
-              v-if="true"
-              :aria-label="t('guitarsongbook', 'Cancel')"
-              @click="">
-            {{ t('guitarsongbook', 'Cancel') }}
-            <template #icon>
-              <NcLoadingIcon v-if="false" :size="20"/>
-              <eye-icon v-else :size="20" />
-            </template>
-          </NcActionButton>
-        </NcActions>
-			</div>
-			<AppMain
-          :song="currentSong"
-          @saved="songUpdated"/>
-		</NcAppContent>
+    <AppContent
+        :song="currentSong"
+        @saved="songUpdated"/>
 	</NcContent>
 </template>
 
-<!--suppress ExceptionCaughtLocallyJS -->
 <script>
 import NcContent from '@nextcloud/vue/dist/Components/NcContent'
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation'
 import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions'
-import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
-import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton'
-import AppMain from './components/AppMain'
-import AppSettingsDialog from './components/AppSettingsDialog'
-import FileSelect from './components/FileSelect'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
-import LoadingIcon from 'vue-material-design-icons/Loading.vue'
+import AppContent from './AppContent'
+import AppSettingsDialog from './AppSettingsDialog'
+import FileSelect from './FileSelect'
 import PlusIcon from 'vue-material-design-icons/Plus'
-import ReloadIcon from 'vue-material-design-icons/Reload'
 import CogIcon from 'vue-material-design-icons/Cog'
-import PencilIcon from 'vue-material-design-icons/Pencil.vue'
-import CheckmarkIcon from 'vue-material-design-icons/Check.vue'
-import PrinterIcon from 'vue-material-design-icons/Printer.vue'
-import EyeIcon from 'vue-material-design-icons/Eye.vue'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -166,23 +78,12 @@ export default {
 		NcAppNavigation,
 		NcAppNavigationItem,
 		NcAppNavigationNew,
-		NcAppContent,
-    NcActions,
 		NcActionButton,
-		NcActionInput,
-		NcButton,
-    AppMain,
+    AppContent,
     AppSettingsDialog,
     FileSelect,
-    NcLoadingIcon,
-    LoadingIcon,
     PlusIcon,
-    ReloadIcon,
     CogIcon,
-    PrinterIcon,
-    PencilIcon,
-    CheckmarkIcon,
-    EyeIcon,
 	},
 	data() {
 		return {
@@ -190,8 +91,6 @@ export default {
 			currentSongId: null,
 			loading: true,
       updating: false,
-      filename: null,
-      score: null,
       settingsOpen: false,
 		}
 	},
@@ -223,6 +122,9 @@ export default {
 		this.loading = false
 	},
 	methods: {
+    // ---------------------------
+    // Navigation
+    // ---------------------------
     async saveScoreAsGP7(score, filename) {
       // create file
       const exporter = new alphaTab.exporter.Gp7Exporter()
@@ -247,11 +149,9 @@ export default {
         const message = isJson ? await response.json() : `An error has occured: ${response.status}`
         throw new Error(message)
       }
-
       // return the new database entry
       return response.json()
     },
-
     /**
      * Create a new song by sending the information to the server
      *
@@ -280,7 +180,6 @@ export default {
       }
       this.updating = false
     },
-
     /**
      * @param file selected file from <input type="file">
      */
@@ -323,6 +222,9 @@ export default {
 			}
       this.updating = false
 		},
+    // ---------------------------
+    // AppContent
+    // ---------------------------
     /**
      * Refresh the updated song in the list
      *
@@ -340,12 +242,9 @@ export default {
      */
     openSong(song) {
       this.currentSongId = song.id
-      // this.$nextTick(() => {
-      // 	this.$refs.name.focus()
-      // })
     },
     // ---------------------------
-    // Settings
+    // AppSettingsDialog
     // ---------------------------
     openSettingsDialog() {
       this.settingsOpen = true
@@ -358,9 +257,6 @@ export default {
 </script>
 
 <style scoped>
-
-/*App*/
-
 #app-content > div {
   width: 100%;
   height: 100%;
@@ -368,41 +264,5 @@ export default {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-}
-
-/* AppControls */
-
-div.controls-wrapper {
-  --nc-button-size: 44px;
-  --vertical-padding: 4px;
-  position: sticky;
-  z-index: 2;
-  top: 0;
-  display: flex;
-  width: 100%;
-  min-height: calc(44px + 2 * var(--vertical-padding));
-  flex-direction: row;
-  padding: var(--vertical-padding) 1rem var(--vertical-padding) calc(44px + 2 * var(--vertical-padding));
-  border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-main-background);
-  gap: 8px;
-}
-
-div.location-wrapper {
-   display: flex;
-   flex: 1;
-   flex-direction: column;
-   justify-content: center;
- }
-
-h2.location {
-  width: 100%;
-  margin-bottom: 0;
-  font-size: 1.2em;
-  line-height: 1em;
-  overflow-x: clip;
-  overflow-y: visible;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>

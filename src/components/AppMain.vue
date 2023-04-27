@@ -89,6 +89,9 @@ export default {
     song(value) {
       console.log('AppMain: WATCH song', value)
       this.currentSong = value
+      // this.$nextTick(() => {
+      // 	this.$refs.name.focus()
+      // })
     }
   }
 }
