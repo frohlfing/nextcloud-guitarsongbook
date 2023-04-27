@@ -6,8 +6,6 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 
-//use OCP\IUserSession;
-
 class StorageService
 {
     private IRootFolder $rootFolder;
@@ -21,13 +19,6 @@ class StorageService
         $this->rootFolder = $rootFolder;
         $this->homeFolder = $this->rootFolder->getUserFolder($userId);
     }
-
-//    public function __construct(IRootFolder $rootFolder, IUserSession $userSession)
-//    {
-//        $this->rootFolder = $rootFolder;
-//        $userId = $userSession->getUser()->getUID();
-//        $this->homeFolder = $this->rootFolder->getUserFolder($userId);
-//    }
 
     public function getSongsFolderName(): string
     {
