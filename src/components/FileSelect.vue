@@ -7,7 +7,7 @@
         :accept="accept"
         class="hidden-visually"
         :disabled="loading || disabled"
-        @change="change($event)"/>
+        @select="select($event)"/>
     <NcAppNavigationNew
         :text="text"
         :disabled="disabled"
@@ -56,13 +56,13 @@ export default {
     }
   },
   emits: {
-    change(file) {
+    select(file) {
       return true
     }
   },
   methods: {
-    change(event) {
-      this.$emit('change', event.target.files[0]);
+    select(event) {
+      this.$emit('select', event.target.files[0]);
     }
   },
 }

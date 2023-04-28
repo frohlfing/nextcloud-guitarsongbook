@@ -19,7 +19,7 @@
         <FileSelect
             :text="t('guitarsongbook', 'Import Music File')"
             accept=".gp3, .gp4, .gp5, .gpx, .gp, .cap, .xml, .txt"
-            @change="importMusicFile"/>
+            @select="importMusicFile"/>
         <ul>
           <NcAppNavigationItem
             v-for="song in songs"
@@ -67,9 +67,8 @@ import FileSelect from './FileSelect'
 import PlusIcon from 'vue-material-design-icons/Plus'
 import CogIcon from 'vue-material-design-icons/Cog'
 import '@nextcloud/dialogs/styles/toast.scss'
-import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
+import api from '../api'
 
 export default {
 	name: 'App',
@@ -112,11 +111,9 @@ export default {
 	 */
 	async mounted() {
 		try {
-			const response = await axios.get(generateUrl('/apps/guitarsongbook/songs'))
-			this.songs = response.data
+			this.songs = await api.songs.index()
 		}
     catch (e) {
-      console.log(e.response ? e.response.data : e.message)
 			showError(t('guitarsongbook', 'Could not fetch the songbook'))
 		}
 		this.loading = false
@@ -125,33 +122,6 @@ export default {
     // ---------------------------
     // Navigation
     // ---------------------------
-    async saveScoreAsGP7(score, filename) {
-      // create file
-      const exporter = new alphaTab.exporter.Gp7Exporter()
-      const settings = new alphaTab.Settings()
-      const bytes = exporter.export(score, settings) // will return a Uint8Array
-      const blob = new Blob([bytes])
-
-      // upload file and create a database entry
-      //const csrf = document.querySelector('meta[name="csrf-token"]')?.content || null;
-      const response = await fetch(generateUrl('/apps/guitarsongbook/songs/file'),{
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          //'X-CSRF-TOKEN': csrf,
-          //'Authorization': 'Bearer ' + api_token,
-          'Content-Disposition': 'attachment; filename="' + filename + '"',
-        },
-        body: blob,
-      });
-      if (!response.ok) {  // status ist nicht 200-299?
-        const isJson = response.headers.get('content-type')?.includes('application/json')
-        const message = isJson ? await response.json() : `An error has occured: ${response.status}`
-        throw new Error(message)
-      }
-      // return the new database entry
-      return response.json()
-    },
     /**
      * Create a new song by sending the information to the server
      *
@@ -159,57 +129,42 @@ export default {
      */
     async createSong() {
       this.updating = true
-      const name = t('guitarsongbook', 'New Song')
       try {
-        // Variante 1 (Datei clientseitig erstellen):
-        //const api = new alphaTab.AlphaTabApi(document.createElement('div'), { useWorkers: false })
-        //api.tex(`\\title "${name}" .`);
-        //const song = await this.saveScoreAsGP7(api.score, api.score.title + '.gp')
-        //this.songs.push(song)
-        //this.currentSongId = song.id
-
-        // Variante 2 (Datei serverseitig erstllen):
-        const response = await axios.post(generateUrl('/apps/guitarsongbook/songs'), { name: name })
-        const song = response.data
+        const song = await api.songs.create(t('guitarsongbook', 'New Song'))
         this.songs.push(song)
         this.currentSongId = song.id
       }
       catch (e) {
-        console.log(e.response ? e.response.data : e.message)
         showError(t('guitarsongbook', 'Could not create the song: {message}', e))
       }
       this.updating = false
     },
     /**
+     * Upload the raw GP7 file data and create a new Song entity
+     *
      * @param file selected file from <input type="file">
      */
     async importMusicFile(file) {
       this.updating = true
       try {
-        const buf = await file.arrayBuffer();
-        const bytes = new Uint8Array(buf);
-        const settings = new alphaTab.Settings();
-        const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(bytes, settings);
-        const filename = file.name.replace(/\.[^/.]+$/, '.gp');  // change file extension
-        const song = await this.saveScoreAsGP7(score, filename)
+        const song = await api.songs.upload(file)
         this.songs.push(song)
         this.currentSongId = song.id
       }
       catch (e) {
-        console.log(e.response ? e.response.data : e.message)
         showError(t('guitarsongbook', 'Could not import the file: {message}', e))
       }
       this.updating = false
     },
 		/**
-		 * Delete a song, remove it from the frontend and show a hint
+		 * Delete the song
 		 *
 		 * @param {object} song Song object
 		 */
 		async deleteSong(song) {
       this.updating = true
 			try {
-				await axios.delete(generateUrl(`/apps/guitarsongbook/songs/${song.id}`))
+				await api.songs.destroy(song)
 				this.songs.splice(this.songs.indexOf(song), 1)
         if (this.currentSongId === song.id) {
 					this.currentSongId = null

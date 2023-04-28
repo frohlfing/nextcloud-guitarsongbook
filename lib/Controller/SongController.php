@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace OCA\GuitarSongbook\Controller;
 
+use http\Exception\BadHeaderException;
 use OCA\GuitarSongbook\AppInfo\Application;
 use OCA\GuitarSongbook\Service\SongNotFound;
 use OCA\GuitarSongbook\Service\SongService;
@@ -31,6 +32,8 @@ class SongController extends Controller
 	}
 
     /**
+     * Fetch the list of songs
+     *
      * @return DataResponse
      * @throws Exception
      * @NoAdminRequired
@@ -41,6 +44,8 @@ class SongController extends Controller
 	}
 
     /**
+     * Get the Song entity by id
+     *
      * @param int $id
      * @return DataResponse
      * @NoAdminRequired
@@ -53,6 +58,8 @@ class SongController extends Controller
 	}
 
     /**
+     * Get the raw contents of the Guitar Pro file.
+     *
      * @param int $id
      * @return StreamResponse
      * @throws NotFoundException
@@ -66,6 +73,8 @@ class SongController extends Controller
     }
 
     /**
+     * Create a new Song
+     *
      * @param string $name
      * @return DataResponse
      * @throws Exception
@@ -79,24 +88,8 @@ class SongController extends Controller
 	}
 
     /**
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     * @throws NotFoundException
-     */
-    public function save(): DataResponse
-    {
-        try {
-            $bytes = file_get_contents('php://input');
-            $song = $this->songService->saveRequestBodyAsFile($bytes, $this->userId);
-        }
-        catch (Exception $e) {
-            return new DataResponse($e->getMessage(), Http::STATUS_BAD_REQUEST);
-        }
-
-        return new DataResponse($song);
-    }
-
-    /**
+     * Create a new Song by given Guitar Pro file
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      * @throws NotFoundException
@@ -105,8 +98,18 @@ class SongController extends Controller
     public function upload(IRequest $request): DataResponse
     {
         try {
-            $file = $request->getUploadedFile('file');
-            $song = $this->songService->saveUploadedFile($file, $this->userId);
+            // get the raw data from the request body
+            $blob = file_get_contents('php://input');
+
+            // get the file name from the Content Disposition Header
+            $dispo = $_SERVER['HTTP_CONTENT_DISPOSITION'] ?: '';
+            $i = strpos($dispo, 'filename=');
+            $filename = $i !== false ? trim(substr($dispo, $i + 9), ' "\'') : '';
+            if (empty($filename)) {
+                throw new BadHeaderException('Filename required');
+            }
+
+            $song = $this->songService->saveBlobAsFile($blob, $filename, $this->userId);
         }
         catch (Exception $e) {
             return new DataResponse($e->getMessage(), Http::STATUS_BAD_REQUEST);
@@ -146,7 +149,7 @@ class SongController extends Controller
 	public function destroy(int $id): DataResponse
     {
 		return $this->handleNotFound(function () use ($id) {
-			return $this->songService->delete($id, $this->userId);
+			return $this->songService->destroy($id, $this->userId);
 		});
 	}
 }

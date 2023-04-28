@@ -93,9 +93,8 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import LoadingIcon from "vue-material-design-icons/Loading.vue"
 import ReloadIcon from 'vue-material-design-icons/Reload'
 import '@nextcloud/dialogs/styles/toast.scss'
-// import { generateUrl } from '@nextcloud/router'
-// import { showError, showSuccess } from '@nextcloud/dialogs'
-// import axios from '@nextcloud/axios'
+//import { showError, showSuccess } from '@nextcloud/dialogs'
+//import api from '../api'
 
 export default {
 	name: 'AppSettingsDialog',

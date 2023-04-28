@@ -30,9 +30,8 @@
 <script>
 import AlphaTab from './AlphaTab'
 import '@nextcloud/dialogs/styles/toast.scss'
-import { generateUrl } from '@nextcloud/router'
 import { showError } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
+import api from '../api'
 
 export default {
 	name: 'AppMain',
@@ -58,7 +57,7 @@ export default {
 	},
 	computed: {
     gpFile() {
-      return this.currentSong ? generateUrl('/apps/guitarsongbook/songs/' + encodeURIComponent(this.currentSong.id) + '/file') : null
+      return this.currentSong ? api.songs.urlFile(this.currentSong.id) : null
     }
 	},
 	methods: {
@@ -74,7 +73,7 @@ export default {
       console.log('AppMain: SAVE UPDATE SONG', this.currentSong)
 			this.saving = true
 			try {
-        await axios.put(generateUrl(`/apps/guitarsongbook/songs/${this.currentSong.id}`), this.currentSong)
+        await api.songs.update(this.currentSong)
         console.log('AppMain: UPDATE SONG SAVED', this.currentSong)
         this.$emit('songUpdated', this.currentSong);
 			}

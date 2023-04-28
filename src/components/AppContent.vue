@@ -94,9 +94,8 @@ import PrinterIcon from 'vue-material-design-icons/Printer.vue'
 import EyeIcon from 'vue-material-design-icons/Eye.vue'
 import CheckmarkIcon from 'vue-material-design-icons/Check.vue'
 import '@nextcloud/dialogs/styles/toast.scss'
-import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
+import api from '../api'
 
 export default {
 	name: 'App',
@@ -155,7 +154,7 @@ export default {
 		async deleteSong() {
       this.updating = true
 			try {
-				await axios.delete(generateUrl(`/apps/guitarsongbook/songs/${this.currentSong.id}`))
+				await api.songs.delete(this.currentSong)
         this.$emit('songDeleted', this.currentSong);
         this.currentSong = null
 				showSuccess(t('guitarsongbook', 'Song deleted'))

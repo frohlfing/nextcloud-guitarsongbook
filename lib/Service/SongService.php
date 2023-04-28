@@ -28,6 +28,8 @@ class SongService
     }
 
     /**
+     * Fetch the list of songs
+     *
      * @param string $userId
      * @return array
      * @throws \OCP\DB\Exception
@@ -61,6 +63,8 @@ class SongService
 	}
 
     /**
+     * Get the Song entity by id
+     *
      * @param int $id
      * @param string $userId
      * @return Song
@@ -140,31 +144,16 @@ class SongService
     /**
      * Create a new Song with the GP7 raw data
      *
-     * @param mixed $bytes Raw data from the request body (php://input)
+     * @param mixed $blob Raw data from the file
+     * @param string $filename
      * @param string $userId
      * @return Song
      * @throws NotFoundException
      * @throws \OCP\DB\Exception
      */
-    public function saveRequestBodyAsFile($bytes, string $userId): Song
+    public function saveBlobAsFile($blob, string $filename, string $userId): Song
     {
-        $name = $this->fileService->saveRequestBodyAsFile($bytes);
-        $info = $this->fileService->getInformation($name);
-        return $this->insert($name, $info, $userId);
-    }
-
-    /**
-     * Create a new Song with the uploaded GP7 file
-     *
-     * @param mixed $file File of the uploaded form
-     * @param string $userId
-     * @return Song
-     * @throws NotFoundException
-     * @throws \OCP\DB\Exception
-     */
-    public function saveUploadedFile($file, string $userId): Song
-    {
-        $name = $this->fileService->saveUploadedFile($file);
+        $name = $this->fileService->saveBlobAsFile($blob, $filename);
         $info = $this->fileService->getInformation($name);
         return $this->insert($name, $info, $userId);
     }
@@ -222,19 +211,19 @@ class SongService
 	}
 
     /**
-     * Delete the Song.
+     * Delete the Song
      *
      * @param int $id
      * @param string $userId
      * @return Song
      * @throws SongNotFound
      */
-    public function delete(int $id, string $userId): Song
+    public function destroy(int $id, string $userId): Song
     {
 		try {
 			$song = $this->songMapper->find($id, $userId);
 
-            $this->fileService->delete($song->getName());
+            $this->fileService->destroy($song->getName());
 			$this->songMapper->delete($song);
 
 			return $song;

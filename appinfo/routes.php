@@ -37,7 +37,6 @@ return [
         ['name' => 'song#show',    'url' => '/songs/{id}',      'verb' => 'GET'],
         ['name' => 'song#file',    'url' => '/songs/{id}/file', 'verb' => 'GET'],
         ['name' => 'song#create',  'url' => '/songs',           'verb' => 'POST'],
-        ['name' => 'song#save',    'url' => '/songs/file',      'verb' => 'POST'],
         ['name' => 'song#upload',  'url' => '/songs/upload',    'verb' => 'POST'],
         ['name' => 'song#update',  'url' => '/songs/{id}',      'verb' => 'PUT'],
         ['name' => 'song#destroy', 'url' => '/songs/{id}',      'verb' => 'DELETE'],
