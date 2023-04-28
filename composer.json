@@ -38,6 +38,7 @@
   "require": {
     "ext-json": "*",
     "ext-zip": "*",
-    "ext-simplexml": "*"
+    "ext-simplexml": "*",
+    "ext-http": "*"
   }
 }

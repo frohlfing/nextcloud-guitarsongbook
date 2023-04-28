@@ -121,20 +121,20 @@ class SongController extends Controller
     /**
      * @param int $id
      * @param string $name
-     * @param string $title
-     * @param string $artist
-     * @param string $subtitle
-     * @param string $album
-     * @param string $words
-     * @param string $music
-     * @param string $copyright
-     * @param string $transcriber
-     * @param string $notices
-     * @param string $instructions
+     * @param string|null $title
+     * @param string|null $artist
+     * @param string|null $subtitle
+     * @param string|null $album
+     * @param string|null $words
+     * @param string|null $music
+     * @param string|null $copyright
+     * @param string|null $transcriber
+     * @param string|null $notices
+     * @param string|null $instructions
      * @return DataResponse
      * @NoAdminRequired
      */
-	public function update(int $id, string $name, string $title, string $artist, string $subtitle, string $album, string $words, string $music, string $copyright, string $transcriber, string $notices, string $instructions): DataResponse
+	public function update(int $id, string $name, ?string $title, ?string $artist, ?string $subtitle, ?string $album, ?string $words, ?string $music, ?string $copyright, ?string $transcriber, ?string $notices, ?string $instructions): DataResponse
     {
 		return $this->handleNotFound(function () use ($id, $name, $title, $artist, $subtitle, $album, $words, $music, $copyright, $transcriber, $notices, $instructions) {
 			return $this->songService->update($id, $name, $title, $artist, $subtitle, $album, $words, $music, $copyright, $transcriber, $notices, $instructions, $this->userId);

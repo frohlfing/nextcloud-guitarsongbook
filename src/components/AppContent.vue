@@ -8,45 +8,35 @@
         </h2>
       </div>
       <NcButton
-          v-if="true"
           type="primary"
-          :aria-label="t('guitarsongbook', 'Edit')"
+          v-if="!editMode"
           @click="enterEditMode">
         <template #icon>
-          <PencilIcon :size="20" />
+          <PencilIcon :size="20"/>
         </template>
         {{ t("guitarsongbook", "Edit") }}
       </NcButton>
       <NcButton
           type="primary"
-          v-if="true"
-          :aria-label="t('guitarsongbook', 'Save')"
-          @click="saveSong">
+          v-if="editMode"
+          @click="updateSong">
         <template #icon>
           <LoadingIcon
               class="animation-rotate"
-              v-if="false"
+              v-if="saving"
               :size="20"/>
-          <CheckmarkIcon v-else :size="20" />
+          <CheckmarkIcon
+              v-else
+              :size="20" />
         </template>
         {{ t('guitarsongbook', 'Save') }}
       </NcButton>
       <NcActions
           class="overflow-menu"
-          v-if="true"
           :force-menu="true">
         <NcActionButton
             class="action-button"
-            v-if="true"
-            :icon="loading ? 'icon-loading-small' : 'icon-history'"
-            :aria-label="t('guitarsongbook', 'Reload')"
-            @click="reload">
-          {{ t("guitarsongbook", "Reload") }}
-        </NcActionButton>
-        <NcActionButton
-            class="action-button"
-            v-if="true"
-            :aria-label="t('guitarsongbook', 'Print')"
+            v-if="!editMode"
             @click="print">
           <template #icon="">
             <printer-icon :size="20" />
@@ -54,28 +44,26 @@
           {{ t('guitarsongbook', 'Print') }}
         </NcActionButton>
         <NcActionButton
-            icon="icon-delete"
             class="action-button"
-            v-if="true"
-            :aria-label="t('guitarsongbook', 'Delete')"
+            icon="icon-delete"
+            v-if="!editMode"
             @click="deleteSong">
           {{ t('guitarsongbook', 'Delete') }}
         </NcActionButton>
         <NcActionButton
             class="action-button"
-            v-if="true"
-            :aria-label="t('guitarsongbook', 'Cancel')"
+            v-if="editMode"
             @click="cancelEditMode">
           {{ t('guitarsongbook', 'Cancel') }}
           <template #icon>
-            <NcLoadingIcon v-if="false" :size="20"/>
-            <eye-icon v-else :size="20" />
+            <eye-icon :size="20" />
           </template>
         </NcActionButton>
       </NcActions>
     </div>
     <AppMain
         :song="currentSong"
+        :editable="editMode"
         @saved="songUpdated"/>
   </NcAppContent>
 </template>
@@ -129,8 +117,8 @@ export default {
 	data() {
 		return {
       currentSong: this.song,
-			loading: false,
-      updating: false,
+      saving: false,
+      editMode: false
 		}
 	},
 	methods: {
@@ -138,21 +126,30 @@ export default {
     // Menü
     // ---------------------------
     enterEditMode() {
-      console.log('enterEditMode')
+      this.editMode = true
     },
     cancelEditMode() {
-      console.log('cancelEditMode')
+      console.log('AppContent: cancelEditMode', this.currentSong)
+      this.currentSong = this.song;
+      this.editMode = false
     },
-    saveSong() {
-      console.log('saveSong')
+    async updateSong() {
+      console.log('AppContent: updateSong', this.currentSong)
+      this.saving = true
+      try {
+        await api.songs.update(this.currentSong)
+        this.$emit('songUpdated', this.currentSong);
+      }
+      catch (e) {
+        console.error(e.response ? e.response.data : e.message)
+        showError(t('guitarsongbook', 'Could not save the song'))
+      }
+      this.saving = false
+      this.editMode = false
     },
-		/**
-		 * Delete a song, remove it from the frontend and show a hint
-		 *
-		 * __@param {object} song Song object
-		 */
 		async deleteSong() {
-      this.updating = true
+      console.log('AppContent: deleteSong', this.currentSong)
+      this.saving = true
 			try {
 				await api.songs.delete(this.currentSong)
         this.$emit('songDeleted', this.currentSong);
@@ -163,11 +160,8 @@ export default {
         console.log(e.response ? e.response.data : e.message)
 				showError(t('guitarsongbook', 'Could not delete the song'))
 			}
-      this.updating = false
+      this.saving = false
 		},
-    reload() {
-      console.log('reload')
-    },
     print() {
       console.log('print')
     },
@@ -175,6 +169,7 @@ export default {
     // AppMain
     // ---------------------------
     songUpdated(song) {
+      console.log('AppContent: songUpdated', song)
       this.currentSong = song
       this.$emit('songUpdated', song);
     },
@@ -183,6 +178,7 @@ export default {
     song(value) {
       console.log('AppContent: WATCH song', value)
       this.currentSong = value
+      this.editMode = false
     }
   }
 }

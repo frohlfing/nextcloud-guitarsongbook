@@ -94,24 +94,16 @@ export default {
 		}
 	},
 	computed: {
-		/**
-		 * Return the currently selected song object
-		 *
-		 * @return {object | null}
-		 */
 		currentSong() {
 			if (this.currentSongId === null) {
 				return null
 			}
-			return this.songs.find((song) => song.id === this.currentSongId)
+			return this.songs.find((song) => song.id === this.currentSongId) // Return the currently selected song object
 		},
 	},
-	/**
-	 * Fetch list of songs when the component is loaded
-	 */
 	async mounted() {
 		try {
-			this.songs = await api.songs.index()
+			this.songs = await api.songs.index()  // Fetch list of songs
 		}
     catch (e) {
 			showError(t('guitarsongbook', 'Could not fetch the songbook'))
@@ -122,11 +114,6 @@ export default {
     // ---------------------------
     // Navigation
     // ---------------------------
-    /**
-     * Create a new song by sending the information to the server
-     *
-     * __@param {object} song Song object
-     */
     async createSong() {
       this.updating = true
       try {
@@ -139,12 +126,7 @@ export default {
       }
       this.updating = false
     },
-    /**
-     * Upload the raw GP7 file data and create a new Song entity
-     *
-     * @param file selected file from <input type="file">
-     */
-    async importMusicFile(file) {
+    async importMusicFile(file) { // file selected file from <input type="file">
       this.updating = true
       try {
         const song = await api.songs.upload(file)
@@ -156,11 +138,6 @@ export default {
       }
       this.updating = false
     },
-		/**
-		 * Delete the song
-		 *
-		 * @param {object} song Song object
-		 */
 		async deleteSong(song) {
       this.updating = true
 			try {
@@ -180,21 +157,12 @@ export default {
     // ---------------------------
     // AppContent
     // ---------------------------
-    /**
-     * Refresh the updated song in the list
-     *
-     * @param song
-     */
     songUpdated(song) {
+      console.log('App: songUpdated', song)
       const index = this.songs.findIndex((match) => match.id === song.id)
       this.$set(this.songs, index, song)
       this.currentSongId = song.id
     },
-    /**
-     * Create a new song and focus the song content field automatically
-     *
-     * @param {object} song Song object
-     */
     openSong(song) {
       this.currentSongId = song.id
     },
