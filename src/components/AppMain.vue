@@ -57,7 +57,7 @@ export default {
     }
   },
   emits: {
-    songUpdated(song) {
+    updated(song) {
       return true
     }
   },
@@ -82,7 +82,7 @@ export default {
 			this.saving = true
 			try {
         await api.songs.update(this.currentSong)
-        this.$emit('songUpdated', this.currentSong);
+        this.$emit('updated', this.currentSong);
 			}
       catch (e) {
 				console.error(e.response ? e.response.data : e.message)

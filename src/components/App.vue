@@ -51,7 +51,8 @@
     </NcAppNavigation>
     <AppContent
         :song="currentSong"
-        @saved="songUpdated"/>
+        @updated="songUpdated"
+        @deleted="songDeleted"/>
 	</NcContent>
 </template>
 
@@ -98,8 +99,9 @@ export default {
 			if (this.currentSongId === null) {
 				return null
 			}
-			return this.songs.find((song) => song.id === this.currentSongId) // Return the currently selected song object
-		},
+			const currentSong = this.songs.find((song) => song.id === this.currentSongId) // the currently selected song object
+      return Object.assign({}, currentSong)  // return a copy of the song object
+		}
 	},
 	async mounted() {
 		try {
@@ -162,6 +164,13 @@ export default {
       const index = this.songs.findIndex((match) => match.id === song.id)
       this.$set(this.songs, index, song)
       this.currentSongId = song.id
+    },
+    songDeleted(song) {
+      console.log('App: songDeleted', song)
+      this.songs.splice(this.songs.indexOf(song), 1)
+      if (this.currentSongId === song.id) {
+        this.currentSongId = null
+      }
     },
     openSong(song) {
       this.currentSongId = song.id

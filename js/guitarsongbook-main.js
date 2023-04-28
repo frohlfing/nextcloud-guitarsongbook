@@ -19735,11 +19735,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue_material_design_icons_Plus__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! vue-material-design-icons/Plus */ "./node_modules/vue-material-design-icons/Plus.vue");
 /* harmony import */ var vue_material_design_icons_Cog__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! vue-material-design-icons/Cog */ "./node_modules/vue-material-design-icons/Cog.vue");
 /* harmony import */ var _nextcloud_dialogs_styles_toast_scss__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @nextcloud/dialogs/styles/toast.scss */ "./node_modules/@nextcloud/dialogs/styles/toast.scss");
-/* harmony import */ var _nextcloud_router__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @nextcloud/router */ "./node_modules/@nextcloud/router/dist/index.js");
-/* harmony import */ var _nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @nextcloud/dialogs */ "./node_modules/@nextcloud/dialogs/dist/index.es.js");
-/* harmony import */ var _nextcloud_axios__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @nextcloud/axios */ "./node_modules/@nextcloud/axios/dist/index.js");
+/* harmony import */ var _nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @nextcloud/dialogs */ "./node_modules/@nextcloud/dialogs/dist/index.es.js");
+/* harmony import */ var _api__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../api */ "./src/api.js");
 /* provided dependency */ var console = __webpack_require__(/*! ./node_modules/console-browserify/index.js */ "./node_modules/console-browserify/index.js");
-
 
 
 
@@ -19777,28 +19775,20 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   computed: {
-    /**
-     * Return the currently selected song object
-     *
-     * @return {object | null}
-     */
     currentSong() {
       if (this.currentSongId === null) {
         return null;
       }
-      return this.songs.find(song => song.id === this.currentSongId);
+      const currentSong = this.songs.find(song => song.id === this.currentSongId); // the currently selected song object
+      return Object.assign({}, currentSong); // return a copy of the song object
     }
   },
-  /**
-   * Fetch list of songs when the component is loaded
-   */
+
   async mounted() {
     try {
-      const response = await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_13__["default"].get((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_11__.generateUrl)('/apps/guitarsongbook/songs'));
-      this.songs = response.data;
+      this.songs = await _api__WEBPACK_IMPORTED_MODULE_12__["default"].songs.index(); // Fetch list of songs
     } catch (e) {
-      console.log(e.response ? e.response.data : e.message);
-      (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__.showError)(t('guitarsongbook', 'Could not fetch the songbook'));
+      (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_11__.showError)(t('guitarsongbook', 'Could not fetch the songbook'));
     }
     this.loading = false;
   },
@@ -19806,122 +19796,60 @@ __webpack_require__.r(__webpack_exports__);
     // ---------------------------
     // Navigation
     // ---------------------------
-    async saveScoreAsGP7(score, filename) {
-      // create file
-      const exporter = new alphaTab.exporter.Gp7Exporter();
-      const settings = new alphaTab.Settings();
-      const bytes = exporter.export(score, settings); // will return a Uint8Array
-      const blob = new Blob([bytes]);
-
-      // upload file and create a database entry
-      //const csrf = document.querySelector('meta[name="csrf-token"]')?.content || null;
-      const response = await fetch((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_11__.generateUrl)('/apps/guitarsongbook/songs/file'), {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          //'X-CSRF-TOKEN': csrf,
-          //'Authorization': 'Bearer ' + api_token,
-          'Content-Disposition': 'attachment; filename="' + filename + '"'
-        },
-        body: blob
-      });
-      if (!response.ok) {
-        var _response$headers$get;
-        // status ist nicht 200-299?
-        const isJson = (_response$headers$get = response.headers.get('content-type')) === null || _response$headers$get === void 0 ? void 0 : _response$headers$get.includes('application/json');
-        const message = isJson ? await response.json() : "An error has occured: ".concat(response.status);
-        throw new Error(message);
-      }
-      // return the new database entry
-      return response.json();
-    },
-    /**
-     * Create a new song by sending the information to the server
-     *
-     * __@param {object} song Song object
-     */
     async createSong() {
       this.updating = true;
-      const name = t('guitarsongbook', 'New Song');
       try {
-        // Variante 1 (Datei clientseitig erstellen):
-        //const api = new alphaTab.AlphaTabApi(document.createElement('div'), { useWorkers: false })
-        //api.tex(`\\title "${name}" .`);
-        //const song = await this.saveScoreAsGP7(api.score, api.score.title + '.gp')
-        //this.songs.push(song)
-        //this.currentSongId = song.id
-
-        // Variante 2 (Datei serverseitig erstllen):
-        const response = await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_13__["default"].post((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_11__.generateUrl)('/apps/guitarsongbook/songs'), {
-          name: name
-        });
-        const song = response.data;
+        const song = await _api__WEBPACK_IMPORTED_MODULE_12__["default"].songs.create(t('guitarsongbook', 'New Song'));
         this.songs.push(song);
         this.currentSongId = song.id;
       } catch (e) {
-        console.log(e.response ? e.response.data : e.message);
-        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__.showError)(t('guitarsongbook', 'Could not create the song: {message}', e));
+        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_11__.showError)(t('guitarsongbook', 'Could not create the song: {message}', e));
       }
       this.updating = false;
     },
-    /**
-     * @param file selected file from <input type="file">
-     */
     async importMusicFile(file) {
+      // file selected file from <input type="file">
       this.updating = true;
       try {
-        const buf = await file.arrayBuffer();
-        const bytes = new Uint8Array(buf);
-        const settings = new alphaTab.Settings();
-        const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(bytes, settings);
-        const filename = file.name.replace(/\.[^/.]+$/, '.gp'); // change file extension
-        const song = await this.saveScoreAsGP7(score, filename);
+        const song = await _api__WEBPACK_IMPORTED_MODULE_12__["default"].songs.upload(file);
         this.songs.push(song);
         this.currentSongId = song.id;
       } catch (e) {
-        console.log(e.response ? e.response.data : e.message);
-        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__.showError)(t('guitarsongbook', 'Could not import the file: {message}', e));
+        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_11__.showError)(t('guitarsongbook', 'Could not import the file: {message}', e));
       }
       this.updating = false;
     },
-    /**
-     * Delete a song, remove it from the frontend and show a hint
-     *
-     * @param {object} song Song object
-     */
     async deleteSong(song) {
       this.updating = true;
       try {
-        await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_13__["default"]["delete"]((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_11__.generateUrl)("/apps/guitarsongbook/songs/".concat(song.id)));
+        await _api__WEBPACK_IMPORTED_MODULE_12__["default"].songs.destroy(song);
         this.songs.splice(this.songs.indexOf(song), 1);
         if (this.currentSongId === song.id) {
           this.currentSongId = null;
         }
-        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__.showSuccess)(t('guitarsongbook', 'Song deleted'));
+        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_11__.showSuccess)(t('guitarsongbook', 'Song deleted'));
       } catch (e) {
         console.log(e.response ? e.response.data : e.message);
-        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__.showError)(t('guitarsongbook', 'Could not delete the song'));
+        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_11__.showError)(t('guitarsongbook', 'Could not delete the song'));
       }
       this.updating = false;
     },
     // ---------------------------
     // AppContent
     // ---------------------------
-    /**
-     * Refresh the updated song in the list
-     *
-     * @param song
-     */
     songUpdated(song) {
+      console.log('App: songUpdated', song);
       const index = this.songs.findIndex(match => match.id === song.id);
       this.$set(this.songs, index, song);
       this.currentSongId = song.id;
     },
-    /**
-     * Create a new song and focus the song content field automatically
-     *
-     * @param {object} song Song object
-     */
+    songDeleted(song) {
+      console.log('App: songDeleted', song);
+      this.songs.splice(this.songs.indexOf(song), 1);
+      if (this.currentSongId === song.id) {
+        this.currentSongId = null;
+      }
+    },
     openSong(song) {
       this.currentSongId = song.id;
     },
@@ -19967,11 +19895,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue_material_design_icons_Eye_vue__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! vue-material-design-icons/Eye.vue */ "./node_modules/vue-material-design-icons/Eye.vue");
 /* harmony import */ var vue_material_design_icons_Check_vue__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! vue-material-design-icons/Check.vue */ "./node_modules/vue-material-design-icons/Check.vue");
 /* harmony import */ var _nextcloud_dialogs_styles_toast_scss__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @nextcloud/dialogs/styles/toast.scss */ "./node_modules/@nextcloud/dialogs/styles/toast.scss");
-/* harmony import */ var _nextcloud_router__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @nextcloud/router */ "./node_modules/@nextcloud/router/dist/index.js");
-/* harmony import */ var _nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @nextcloud/dialogs */ "./node_modules/@nextcloud/dialogs/dist/index.es.js");
-/* harmony import */ var _nextcloud_axios__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @nextcloud/axios */ "./node_modules/@nextcloud/axios/dist/index.js");
+/* harmony import */ var _nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @nextcloud/dialogs */ "./node_modules/@nextcloud/dialogs/dist/index.es.js");
+/* harmony import */ var _api__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../api */ "./src/api.js");
 /* provided dependency */ var console = __webpack_require__(/*! ./node_modules/console-browserify/index.js */ "./node_modules/console-browserify/index.js");
-
 
 
 
@@ -20008,18 +19934,18 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   emits: {
-    songUpdated(song) {
+    updated(song) {
       return true;
     },
-    songDeleted(song) {
+    deleted(song) {
       return true;
     }
   },
   data() {
     return {
       currentSong: this.song,
-      loading: false,
-      updating: false
+      saving: false,
+      editMode: false
     };
   },
   methods: {
@@ -20027,34 +19953,39 @@ __webpack_require__.r(__webpack_exports__);
     // Menü
     // ---------------------------
     enterEditMode() {
-      console.log('enterEditMode');
+      this.editMode = true;
     },
     cancelEditMode() {
-      console.log('cancelEditMode');
+      console.log('AppContent: cancelEditMode', this.currentSong);
+      this.currentSong = this.song;
+      this.editMode = false;
     },
-    saveSong() {
-      console.log('saveSong');
-    },
-    /**
-     * Delete a song, remove it from the frontend and show a hint
-     *
-     * __@param {object} song Song object
-     */
-    async deleteSong() {
-      this.updating = true;
+    async updateSong() {
+      console.log('AppContent: updateSong', this.currentSong);
+      this.saving = true;
       try {
-        await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_14__["default"]["delete"]((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_12__.generateUrl)("/apps/guitarsongbook/songs/".concat(this.currentSong.id)));
-        this.$emit('songDeleted', this.currentSong);
+        await _api__WEBPACK_IMPORTED_MODULE_13__["default"].songs.update(this.currentSong);
+        this.$emit('updated', this.currentSong);
+      } catch (e) {
+        console.error(e.response ? e.response.data : e.message);
+        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__.showError)(t('guitarsongbook', 'Could not save the song'));
+      }
+      this.saving = false;
+      this.editMode = false;
+    },
+    async deleteSong() {
+      console.log('AppContent: deleteSong', this.currentSong);
+      this.saving = true;
+      try {
+        await _api__WEBPACK_IMPORTED_MODULE_13__["default"].songs["delete"](this.currentSong);
+        this.$emit('deleted', this.currentSong);
         this.currentSong = null;
-        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_13__.showSuccess)(t('guitarsongbook', 'Song deleted'));
+        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__.showSuccess)(t('guitarsongbook', 'Song deleted'));
       } catch (e) {
         console.log(e.response ? e.response.data : e.message);
-        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_13__.showError)(t('guitarsongbook', 'Could not delete the song'));
+        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_12__.showError)(t('guitarsongbook', 'Could not delete the song'));
       }
-      this.updating = false;
-    },
-    reload() {
-      console.log('reload');
+      this.saving = false;
     },
     print() {
       console.log('print');
@@ -20063,14 +19994,16 @@ __webpack_require__.r(__webpack_exports__);
     // AppMain
     // ---------------------------
     songUpdated(song) {
+      console.log('AppContent: songUpdated', song);
       this.currentSong = song;
-      this.$emit('songUpdated', song);
+      this.$emit('updated', song);
     }
   },
   watch: {
     song(value) {
       console.log('AppContent: WATCH song', value);
       this.currentSong = value;
+      this.editMode = false;
     }
   }
 });
@@ -20090,11 +20023,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _AlphaTab__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./AlphaTab */ "./src/components/AlphaTab.vue");
 /* harmony import */ var _nextcloud_dialogs_styles_toast_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @nextcloud/dialogs/styles/toast.scss */ "./node_modules/@nextcloud/dialogs/styles/toast.scss");
-/* harmony import */ var _nextcloud_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @nextcloud/router */ "./node_modules/@nextcloud/router/dist/index.js");
-/* harmony import */ var _nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @nextcloud/dialogs */ "./node_modules/@nextcloud/dialogs/dist/index.es.js");
-/* harmony import */ var _nextcloud_axios__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @nextcloud/axios */ "./node_modules/@nextcloud/axios/dist/index.js");
+/* harmony import */ var _nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @nextcloud/dialogs */ "./node_modules/@nextcloud/dialogs/dist/index.es.js");
+/* harmony import */ var _api__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../api */ "./src/api.js");
 /* provided dependency */ var console = __webpack_require__(/*! ./node_modules/console-browserify/index.js */ "./node_modules/console-browserify/index.js");
-
 
 
 
@@ -20108,43 +20039,42 @@ __webpack_require__.r(__webpack_exports__);
     song: {
       type: Object,
       default: null
+    },
+    editable: {
+      type: Boolean,
+      default: false
     }
   },
   emits: {
-    songUpdated(song) {
+    updated(song) {
       return true;
     }
   },
   data() {
     return {
       currentSong: this.song,
-      saving: false
+      saving: false,
+      editMode: this.editable
     };
   },
   computed: {
     gpFile() {
-      return this.currentSong ? (0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_2__.generateUrl)('/apps/guitarsongbook/songs/' + encodeURIComponent(this.currentSong.id) + '/file') : null;
+      return this.currentSong ? _api__WEBPACK_IMPORTED_MODULE_3__["default"].songs.urlFile(this.currentSong.id) : null;
     }
   },
   methods: {
     scoreLoaded(score) {
       console.log('scoreLoaded', score);
     },
-    /**
-     * Update an existing song on the server
-     *
-     * __@param {object} song Song object
-     */
     async updateSong() {
-      console.log('AppMain: SAVE UPDATE SONG', this.currentSong);
+      console.log('AppMain: UPDATE SONG', this.currentSong);
       this.saving = true;
       try {
-        await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_4__["default"].put((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_2__.generateUrl)("/apps/guitarsongbook/songs/".concat(this.currentSong.id)), this.currentSong);
-        console.log('AppMain: UPDATE SONG SAVED', this.currentSong);
-        this.$emit('songUpdated', this.currentSong);
+        await _api__WEBPACK_IMPORTED_MODULE_3__["default"].songs.update(this.currentSong);
+        this.$emit('updated', this.currentSong);
       } catch (e) {
         console.error(e.response ? e.response.data : e.message);
-        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_3__.showError)(t('guitarsongbook', 'Could not save the song'));
+        (0,_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_2__.showError)(t('guitarsongbook', 'Could not save the song'));
       }
       this.saving = false;
     }
@@ -20156,6 +20086,11 @@ __webpack_require__.r(__webpack_exports__);
       // this.$nextTick(() => {
       // 	this.$refs.name.focus()
       // })
+    },
+
+    editable(value) {
+      console.log('AppMain: editable', value);
+      this.editMode = value;
     }
   }
 });
@@ -20192,9 +20127,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-// import { generateUrl } from '@nextcloud/router'
-// import { showError, showSuccess } from '@nextcloud/dialogs'
-// import axios from '@nextcloud/axios'
+//import { showError, showSuccess } from '@nextcloud/dialogs'
+//import api from '../api'
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   name: 'AppSettingsDialog',
@@ -20294,13 +20228,14 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   emits: {
-    change(file) {
+    select(file) {
       return true;
     }
   },
   methods: {
     change(event) {
-      this.$emit('change', event.target.files[0]);
+      this.$emit('select', event.target.files[0]);
+      event.target.value = ''; // without the reset, the change event would not fire when selecting the same file again
     }
   }
 });
@@ -20409,7 +20344,7 @@ var render = function render() {
             accept: ".gp3, .gp4, .gp5, .gpx, .gp, .cap, .xml, .txt"
           },
           on: {
-            change: _vm.importMusicFile
+            select: _vm.importMusicFile
           }
         }), _vm._v(" "), _c("ul", _vm._l(_vm.songs, function (song) {
           return _c("NcAppNavigationItem", {
@@ -20483,7 +20418,8 @@ var render = function render() {
       song: _vm.currentSong
     },
     on: {
-      saved: _vm.songUpdated
+      updated: _vm.songUpdated,
+      deleted: _vm.songDeleted
     }
   })], 1);
 };
@@ -20512,10 +20448,9 @@ var render = function render() {
     staticClass: "app-controls"
   }, [_c("div", {
     staticClass: "location"
-  }, [_c("h2", [_vm._v("\n        " + _vm._s(_vm.t("guitarsongbook", "New song")) + "\n      ")])]), _vm._v(" "),  true ? _c("NcButton", {
+  }, [_c("h2", [_vm._v("\n        " + _vm._s(_vm.t("guitarsongbook", "New song")) + "\n      ")])]), _vm._v(" "), !_vm.editMode ? _c("NcButton", {
     attrs: {
-      type: "primary",
-      "aria-label": _vm.t("guitarsongbook", "Edit")
+      type: "primary"
     },
     on: {
       click: _vm.enterEditMode
@@ -20531,44 +20466,36 @@ var render = function render() {
       },
       proxy: true
     }], null, false, 4260349822)
-  }, [_vm._v("\n      " + _vm._s(_vm.t("guitarsongbook", "Edit")) + "\n    ")]) : 0, _vm._v(" "),  true ? _c("NcButton", {
+  }, [_vm._v("\n      " + _vm._s(_vm.t("guitarsongbook", "Edit")) + "\n    ")]) : _vm._e(), _vm._v(" "), _vm.editMode ? _c("NcButton", {
     attrs: {
-      type: "primary",
-      "aria-label": _vm.t("guitarsongbook", "Save")
+      type: "primary"
     },
     on: {
-      click: _vm.saveSong
+      click: _vm.updateSong
     },
     scopedSlots: _vm._u([{
       key: "icon",
       fn: function () {
-        return [ false ? 0 : _c("CheckmarkIcon", {
+        return [_vm.saving ? _c("LoadingIcon", {
+          staticClass: "animation-rotate",
+          attrs: {
+            size: 20
+          }
+        }) : _c("CheckmarkIcon", {
           attrs: {
             size: 20
           }
         })];
       },
       proxy: true
-    }], null, false, 2546576784)
-  }, [_vm._v("\n      " + _vm._s(_vm.t("guitarsongbook", "Save")) + "\n    ")]) : 0, _vm._v(" "),  true ? _c("NcActions", {
+    }], null, false, 1584013065)
+  }, [_vm._v("\n      " + _vm._s(_vm.t("guitarsongbook", "Save")) + "\n    ")]) : _vm._e(), _vm._v(" "), _c("NcActions", {
     staticClass: "overflow-menu",
     attrs: {
       "force-menu": true
     }
-  }, [ true ? _c("NcActionButton", {
+  }, [!_vm.editMode ? _c("NcActionButton", {
     staticClass: "action-button",
-    attrs: {
-      icon: _vm.loading ? "icon-loading-small" : "icon-history",
-      "aria-label": _vm.t("guitarsongbook", "Reload")
-    },
-    on: {
-      click: _vm.reload
-    }
-  }, [_vm._v("\n        " + _vm._s(_vm.t("guitarsongbook", "Reload")) + "\n      ")]) : 0, _vm._v(" "),  true ? _c("NcActionButton", {
-    staticClass: "action-button",
-    attrs: {
-      "aria-label": _vm.t("guitarsongbook", "Print")
-    },
     on: {
       click: _vm.print
     },
@@ -20583,40 +20510,37 @@ var render = function render() {
       },
       proxy: true
     }], null, false, 418765288)
-  }, [_vm._v("\n        " + _vm._s(_vm.t("guitarsongbook", "Print")) + "\n      ")]) : 0, _vm._v(" "),  true ? _c("NcActionButton", {
+  }, [_vm._v("\n        " + _vm._s(_vm.t("guitarsongbook", "Print")) + "\n      ")]) : _vm._e(), _vm._v(" "), !_vm.editMode ? _c("NcActionButton", {
     staticClass: "action-button",
     attrs: {
-      icon: "icon-delete",
-      "aria-label": _vm.t("guitarsongbook", "Delete")
+      icon: "icon-delete"
     },
     on: {
       click: _vm.deleteSong
     }
-  }, [_vm._v("\n        " + _vm._s(_vm.t("guitarsongbook", "Delete")) + "\n      ")]) : 0, _vm._v(" "),  true ? _c("NcActionButton", {
+  }, [_vm._v("\n        " + _vm._s(_vm.t("guitarsongbook", "Delete")) + "\n      ")]) : _vm._e(), _vm._v(" "), _vm.editMode ? _c("NcActionButton", {
     staticClass: "action-button",
-    attrs: {
-      "aria-label": _vm.t("guitarsongbook", "Cancel")
-    },
     on: {
       click: _vm.cancelEditMode
     },
     scopedSlots: _vm._u([{
       key: "icon",
       fn: function () {
-        return [ false ? 0 : _c("eye-icon", {
+        return [_c("eye-icon", {
           attrs: {
             size: 20
           }
         })];
       },
       proxy: true
-    }], null, false, 223725912)
-  }, [_vm._v("\n        " + _vm._s(_vm.t("guitarsongbook", "Cancel")) + "\n        ")]) : 0], 1) : 0], 1), _vm._v(" "), _c("AppMain", {
+    }], null, false, 1776795255)
+  }, [_vm._v("\n        " + _vm._s(_vm.t("guitarsongbook", "Cancel")) + "\n        ")]) : _vm._e()], 1)], 1), _vm._v(" "), _c("AppMain", {
     attrs: {
-      song: _vm.currentSong
+      song: _vm.currentSong,
+      editable: _vm.editMode
     },
     on: {
-      saved: _vm.songUpdated
+      updated: _vm.songUpdated
     }
   })], 1);
 };
@@ -20643,23 +20567,20 @@ var render = function render() {
     _c = _vm._self._c;
   return _c("div", {
     staticClass: "main-wrapper"
-  }, [_vm.currentSong ? _c("div", [_c("AlphaTab", {
+  }, [_vm.currentSong ? _c("div", [_vm.editMode ? _c("div", [_c("label", {
     attrs: {
-      "gp-file": _vm.gpFile
-    },
-    on: {
-      "score-loaded": _vm.scoreLoaded
+      for: "name"
     }
-  }), _vm._v(" "), _c("input", {
+  }, [_vm._v(_vm._s(_vm.t("guitarsongbook", "Name")))]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
       value: _vm.currentSong.name,
       expression: "currentSong.name"
     }],
-    ref: "name",
     attrs: {
       type: "text",
+      id: "name",
       disabled: _vm.saving
     },
     domProps: {
@@ -20671,7 +20592,11 @@ var render = function render() {
         _vm.$set(_vm.currentSong, "name", $event.target.value);
       }
     }
-  }), _vm._v(" "), _c("input", {
+  }), _vm._v(" "), _c("label", {
+    attrs: {
+      for: "title"
+    }
+  }, [_vm._v(_vm._s(_vm.t("guitarsongbook", "Title")))]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -20680,6 +20605,7 @@ var render = function render() {
     }],
     attrs: {
       type: "text",
+      id: "title",
       disabled: _vm.saving
     },
     domProps: {
@@ -20701,7 +20627,14 @@ var render = function render() {
     on: {
       click: _vm.updateSong
     }
-  })], 1) : _c("div", {
+  })]) : _vm._e(), _vm._v(" "), !_vm.editMode ? _c("div", [_c("AlphaTab", {
+    attrs: {
+      "gp-file": _vm.gpFile
+    },
+    on: {
+      "score-loaded": _vm.scoreLoaded
+    }
+  })], 1) : _vm._e()]) : _c("div", {
     attrs: {
       id: "emptycontent"
     }
@@ -20972,6 +20905,153 @@ var render = function render() {
 var staticRenderFns = [];
 render._withStripped = true;
 
+
+/***/ }),
+
+/***/ "./src/api.js":
+/*!********************!*\
+  !*** ./src/api.js ***!
+  \********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @nextcloud/axios */ "./node_modules/@nextcloud/axios/dist/index.js");
+/* harmony import */ var _nextcloud_router__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @nextcloud/router */ "./node_modules/@nextcloud/router/dist/index.js");
+/* provided dependency */ var console = __webpack_require__(/*! ./node_modules/console-browserify/index.js */ "./node_modules/console-browserify/index.js");
+
+
+function handleError(e) {
+  const message = e.response ? e.response.data : e.message;
+  console.log("API: ".concat(message));
+  throw new Error(e);
+}
+const songs = {
+  /**
+   * Fetch the list of songs
+   *
+   * @return {Promise<any>} Array
+   */
+  index: async function () {
+    const response = await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__["default"].get((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_1__.generateUrl)('/apps/guitarsongbook/songs')).catch(e => {
+      handleError(e);
+    });
+    return response.data;
+  },
+  /**
+   * Get the Song entity by id
+   *
+   * @param {int} id
+   * @return {Promise<any>} Object
+   */
+  show: async function (id) {
+    const response = await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__["default"].get((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_1__.generateUrl)('/apps/guitarsongbook/songs/' + +encodeURIComponent(id))).catch(e => {
+      handleError(e);
+    });
+    return response.data;
+  },
+  /**
+   * Get the url for Guitar Pro file by id
+   *
+   * @param {int} id
+   * @return {String}
+   */
+  urlFile: function (id) {
+    return (0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_1__.generateUrl)('/apps/guitarsongbook/songs/' + encodeURIComponent(id) + '/file');
+  },
+  /**
+   * Create a new File and return the new Song entity
+   *
+   * (Variante 1: Datei serverseitig erstellen)
+   *
+   * @param {String} name Folder
+   * @return {Promise<any>} Object
+   */
+  create: async function (name) {
+    const response = await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__["default"].post((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_1__.generateUrl)('/apps/guitarsongbook/songs'), {
+      name: name
+    }).catch(e => {
+      handleError(e);
+    });
+    return response.data;
+  },
+  /**
+   * Upload a music file and return the new Song entity
+   *
+   * Supported formats:
+   * .gp3, .gp4, .gp5: Guitar Pro 3-5 files which are a proprietary binary format from Arobas Music
+   * .gp: Guitar Pro 7 files which are a zip archive storing the music information as XML
+   * .gpx, .cap, .xml: Guitar Pro 6 files (.gpx), CapXML files (.cap) and MusicXML files (.xml)
+   * .txt: alphaTex
+   *
+   * @param {File} file selected file from <input type="file"> via event.target.files[0]
+   * @return {Promise<any>} Object
+   */
+  upload: async function (file) {
+    // load file into a alphaTab Score
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    const settings = new alphaTab.Settings();
+    const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(bytes, settings);
+    const filename = file.name.replace(/\.[^/.]+$/, '.gp'); // change file extension
+
+    // convert the score to a GP7 file
+    const exporter = new alphaTab.exporter.Gp7Exporter();
+    const uint8arr = exporter.export(score, settings); // will return a Uint8Array of the file
+    const blob = new Blob([uint8arr]);
+
+    // upload the file
+    //const csrf = document.querySelector('meta[name="csrf-token"]')?.content || null;
+    const response = await fetch((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_1__.generateUrl)('/apps/guitarsongbook/songs/upload'), {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        //'X-CSRF-TOKEN': csrf,
+        //'Authorization': 'Bearer ' + api_token,
+        'Content-Disposition': 'attachment; filename="' + filename + '"'
+      },
+      body: blob
+    });
+    if (!response.ok) {
+      var _response$headers$get;
+      // status ist nicht 200-299?
+      const isJson = (_response$headers$get = response.headers.get('content-type')) === null || _response$headers$get === void 0 ? void 0 : _response$headers$get.includes('application/json');
+      const message = isJson ? await response.json() : "An error has occured: ".concat(response.status);
+      throw new Error(message);
+    }
+    return response.json();
+  },
+  /**
+   * Update the given Song
+   *
+   * @param {Object} song
+   * @return {Promise<any>} The updated Song
+   */
+  update: async function (song) {
+    const response = await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__["default"].put((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_1__.generateUrl)("/apps/guitarsongbook/songs/".concat(song.id)), song).catch(e => {
+      handleError(e);
+    });
+    return response.data;
+  },
+  /**
+   * Delete the given Song
+   *
+   * @param {Object} song
+   * @return {Promise<any>} The deleted Song
+   */
+  destroy: async function (song) {
+    const response = await _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__["default"]["delete"]((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_1__.generateUrl)("/apps/guitarsongbook/songs/".concat(song.id))).catch(e => {
+      handleError(e);
+    });
+    return response.data;
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+  songs: songs
+});
 
 /***/ }),
 
@@ -56897,4 +56977,4 @@ vue__WEBPACK_IMPORTED_MODULE_2__["default"].config.devtools = true;
 
 /******/ })()
 ;
-//# sourceMappingURL=guitarsongbook-main.js.map?v=6a67395c9209188551ee
+//# sourceMappingURL=guitarsongbook-main.js.map?v=c98a82d36798da1504f2

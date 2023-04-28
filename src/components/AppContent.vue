@@ -64,7 +64,7 @@
     <AppMain
         :song="currentSong"
         :editable="editMode"
-        @saved="songUpdated"/>
+        @updated="songUpdated"/>
   </NcAppContent>
 </template>
 
@@ -107,10 +107,10 @@ export default {
     }
   },
   emits: {
-    songUpdated(song) {
+    updated(song) {
       return true
     },
-    songDeleted(song) {
+    deleted(song) {
       return true
     }
   },
@@ -138,7 +138,7 @@ export default {
       this.saving = true
       try {
         await api.songs.update(this.currentSong)
-        this.$emit('songUpdated', this.currentSong);
+        this.$emit('updated', this.currentSong);
       }
       catch (e) {
         console.error(e.response ? e.response.data : e.message)
@@ -152,7 +152,7 @@ export default {
       this.saving = true
 			try {
 				await api.songs.delete(this.currentSong)
-        this.$emit('songDeleted', this.currentSong);
+        this.$emit('deleted', this.currentSong);
         this.currentSong = null
 				showSuccess(t('guitarsongbook', 'Song deleted'))
 			}
@@ -171,7 +171,7 @@ export default {
     songUpdated(song) {
       console.log('AppContent: songUpdated', song)
       this.currentSong = song
-      this.$emit('songUpdated', song);
+      this.$emit('updated', song);
     },
 	},
   watch: {
