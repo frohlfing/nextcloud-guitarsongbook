@@ -13,7 +13,7 @@ OC.L10N.register("guitarsongbook",
     "New": "Neu",
 
     // App todo Componente genauer bezeichnen
-    "Create a song to get started!": "Erstelle einen Song, um loszulegen!",
+    "Welcome": "Willkommen",
     "Create song": "Song erstellen",
     "Import Music File": "Musik-Datei importieren",
     "New song": "Neuer Song",

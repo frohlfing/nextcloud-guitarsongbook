@@ -99,9 +99,8 @@ export default {
 			if (this.currentSongId === null) {
 				return null
 			}
-			const currentSong = this.songs.find((song) => song.id === this.currentSongId) // the currently selected song object
-      return Object.assign({}, currentSong)  // return a copy of the song object
-		}
+			return this.songs.find((song) => song.id === this.currentSongId) // Return the currently selected song object
+		},
 	},
 	async mounted() {
 		try {
@@ -116,6 +115,9 @@ export default {
     // ---------------------------
     // Navigation
     // ---------------------------
+    openSong(song) {
+      this.currentSongId = song.id
+    },
     async createSong() {
       this.updating = true
       try {
@@ -171,9 +173,6 @@ export default {
       if (this.currentSongId === song.id) {
         this.currentSongId = null
       }
-    },
-    openSong(song) {
-      this.currentSongId = song.id
     },
     // ---------------------------
     // AppSettingsDialog

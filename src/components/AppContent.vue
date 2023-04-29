@@ -7,64 +7,57 @@
           {{ t('guitarsongbook', 'New song') }}
         </h2>
       </div>
-      <NcButton
-          type="primary"
-          v-if="!editMode"
-          @click="enterEditMode">
-        <template #icon>
-          <PencilIcon :size="20"/>
-        </template>
-        {{ t("guitarsongbook", "Edit") }}
-      </NcButton>
-      <NcButton
-          type="primary"
-          v-if="editMode"
-          @click="updateSong">
-        <template #icon>
-          <LoadingIcon
-              class="animation-rotate"
-              v-if="saving"
-              :size="20"/>
-          <CheckmarkIcon
-              v-else
-              :size="20" />
-        </template>
-        {{ t('guitarsongbook', 'Save') }}
-      </NcButton>
-      <NcActions
-          class="overflow-menu"
-          :force-menu="true">
-        <NcActionButton
-            class="action-button"
-            v-if="!editMode"
-            @click="print">
+<!--      <NcButton v-if="!editMode" type="primary" @click="enterEditMode">-->
+<!--        <template #icon>-->
+<!--          <PencilIcon :size="20"/>-->
+<!--        </template>-->
+<!--        {{ t('guitarsongbook', 'Edit') }}-->
+<!--      </NcButton>-->
+<!--      <NcButton v-if="editMode" type="primary" @click="updateSong">-->
+<!--        <template #icon>-->
+<!--          <LoadingIcon v-if="saving" class="animation-rotate" :size="20"/>-->
+<!--          <CheckmarkIcon v-else :size="20"/>-->
+<!--        </template>-->
+<!--        {{ t('guitarsongbook', 'Save') }}-->
+<!--      </NcButton>-->
+      <NcActions v-if="currentSong" class="overflow-menu" :force-menu="true">
+        <NcActionButton v-if="!editMode" class="action-button" @click="print">
           <template #icon="">
-            <printer-icon :size="20" />
+            <printer-icon :size="20"/>
           </template>
           {{ t('guitarsongbook', 'Print') }}
         </NcActionButton>
-        <NcActionButton
-            class="action-button"
-            icon="icon-delete"
-            v-if="!editMode"
-            @click="deleteSong">
+        <NcActionButton v-if="!editMode" class="action-button" @click="enterEditMode">
+          <template #icon="">
+            <PencilIcon :size="20"/>
+          </template>
+          {{ t('guitarsongbook', 'Edit') }}
+        </NcActionButton>
+        <NcActionButton v-if="!editMode" class="action-button" icon="icon-delete" @click="deleteSong">
           {{ t('guitarsongbook', 'Delete') }}
         </NcActionButton>
-        <NcActionButton
-            class="action-button"
-            v-if="editMode"
-            @click="cancelEditMode">
+        <NcActionButton v-if="editMode" class="action-button" @click="cancelEditMode">
           {{ t('guitarsongbook', 'Cancel') }}
           <template #icon>
-            <eye-icon :size="20" />
+            <eye-icon :size="20"/>
           </template>
         </NcActionButton>
       </NcActions>
     </div>
-    <AppMain
-        :song="currentSong"
-        :editable="editMode"
-        @updated="songUpdated"/>
+    <div class="app-main">
+      <div v-if="currentSong">
+        <div v-if="!editMode">
+          <AlphaTab :gp-file="gpFile" @score-loaded="scoreLoaded"/>
+        </div>
+        <SongForm v-if="editMode" :song="currentSong" @submit="updateSong" />
+      </div>
+      <div v-if="!currentSong" id="emptycontent">
+        <div class="icon-file"></div>
+        <h2>
+          {{ t('guitarsongbook', 'Welcome') }}
+        </h2>
+      </div>
+    </div>
   </NcAppContent>
 </template>
 
@@ -74,7 +67,8 @@ import NcActions from '@nextcloud/vue/dist/Components/NcActions'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
-import AppMain from './AppMain'
+import AlphaTab from './AlphaTab'
+import SongForm from './SongForm'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
 import LoadingIcon from 'vue-material-design-icons/Loading.vue'
 import PencilIcon from 'vue-material-design-icons/Pencil.vue'
@@ -86,25 +80,26 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import api from '../api'
 
 export default {
-	name: 'App',
-	components: {
-		NcAppContent,
+  name: 'App',
+  components: {
+    NcAppContent,
     NcActions,
-		NcActionButton,
-		NcButton,
-    AppMain,
+    NcActionButton,
+    NcButton,
+    AlphaTab,
+    SongForm,
     NcLoadingIcon,
     LoadingIcon,
     PencilIcon,
     PrinterIcon,
     EyeIcon,
     CheckmarkIcon,
-	},
+  },
   props: {
     song: {
       type: Object,
       default: null,
-    }
+    },
   },
   emits: {
     updated(song) {
@@ -112,16 +107,21 @@ export default {
     },
     deleted(song) {
       return true
-    }
+    },
   },
-	data() {
-		return {
+  data() {
+    return {
       currentSong: this.song,
       saving: false,
-      editMode: false
-		}
-	},
-	methods: {
+      editMode: false,
+    }
+  },
+  computed: {
+    gpFile() {
+      return this.currentSong ? api.songs.urlFile(this.currentSong.id) : null
+    }
+  },
+  methods: {
     // ---------------------------
     // Menü
     // ---------------------------
@@ -130,15 +130,41 @@ export default {
     },
     cancelEditMode() {
       console.log('AppContent: cancelEditMode', this.currentSong)
-      this.currentSong = this.song;
       this.editMode = false
     },
-    async updateSong() {
+    async deleteSong() {
+      console.log('AppContent: deleteSong', this.currentSong)
+      this.saving = true
+      try {
+        await api.songs.delete(this.currentSong)
+        this.$emit('deleted', this.currentSong)
+        this.currentSong = null
+        showSuccess(t('guitarsongbook', 'Song deleted'))
+      } catch (e) {
+        console.log(e.response ? e.response.data : e.message)
+        showError(t('guitarsongbook', 'Could not delete the song'))
+      }
+      this.saving = false
+    },
+    print() {
+      console.log('print')
+    },
+    // ---------------------------
+    // AlphaTab
+    // ---------------------------
+    scoreLoaded(score) {
+      console.log('scoreLoaded', score)
+    },
+    // ---------------------------
+    // SongForm
+    // ---------------------------
+    async updateSong(song) {
       console.log('AppContent: updateSong', this.currentSong)
       this.saving = true
       try {
-        await api.songs.update(this.currentSong)
-        this.$emit('updated', this.currentSong);
+        await api.songs.update(song)
+        this.currentSong = song
+        this.$emit('updated', song)
       }
       catch (e) {
         console.error(e.response ? e.response.data : e.message)
@@ -147,40 +173,14 @@ export default {
       this.saving = false
       this.editMode = false
     },
-		async deleteSong() {
-      console.log('AppContent: deleteSong', this.currentSong)
-      this.saving = true
-			try {
-				await api.songs.delete(this.currentSong)
-        this.$emit('deleted', this.currentSong);
-        this.currentSong = null
-				showSuccess(t('guitarsongbook', 'Song deleted'))
-			}
-      catch (e) {
-        console.log(e.response ? e.response.data : e.message)
-				showError(t('guitarsongbook', 'Could not delete the song'))
-			}
-      this.saving = false
-		},
-    print() {
-      console.log('print')
-    },
-    // ---------------------------
-    // AppMain
-    // ---------------------------
-    songUpdated(song) {
-      console.log('AppContent: songUpdated', song)
-      this.currentSong = song
-      this.$emit('updated', song);
-    },
-	},
+  },
   watch: {
     song(value) {
       console.log('AppContent: WATCH song', value)
       this.currentSong = value
       this.editMode = false
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -200,12 +200,14 @@ div.app-controls {
   background-color: var(--color-main-background);
   gap: 8px;
 }
+
 div.app-controls div.location {
-   display: flex;
-   flex: 1;
-   flex-direction: column;
-   justify-content: center;
- }
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
 div.app-controls div.location h2 {
   width: 100%;
   margin-bottom: 0;
@@ -215,5 +217,9 @@ div.app-controls div.location h2 {
   overflow-y: visible;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+div.app-main {
+  width: 100%;
+  padding: 1rem;
 }
 </style>
