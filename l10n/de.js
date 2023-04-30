@@ -39,5 +39,8 @@ OC.L10N.register("guitarsongbook",
 
     // FileUpload   todo message ausgeben
     "Could not upload the file.": "Die Datei konnte nicht hochgeladen werden.",
+
+    // SongForm
+    "You have unsaved changes! Do you still want to leave?" : "Deine Änderungen gehen verloren, wenn du fortfährst.",
 },
 "nplurals=2; plural=(n != 1);");

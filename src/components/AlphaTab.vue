@@ -33,8 +33,14 @@ export default {
       return true
     }
   },
+  watch: {
+    gpFile(value) {
+      console.log('AlphaTab: WATCH gpFile', value)
+      this.api.load(value)
+    }
+  },
   mounted() {
-    console.log('AppTab: MOUNTED')
+    console.log('AlphaTab: MOUNTED')
     this.api = new alphaTab.AlphaTabApi(this.$refs.alphaTab, {})
     this.api.renderStarted.on(() => {
       this.rendering = true
@@ -46,12 +52,6 @@ export default {
       this.$emit('scoreLoaded', score);
     })
     this.api.load(this.gpFile)
-  },
-  watch: {
-    gpFile(value) {
-      console.log('AppTab: WATCH gpFile', value)
-      this.api.load(value)
-    }
   }
 }
 </script>

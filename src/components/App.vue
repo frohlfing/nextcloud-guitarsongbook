@@ -6,42 +6,24 @@
 	<NcContent app-name="guitarsongbook">
 		<NcAppNavigation>
       <template #list>
-        <NcAppNavigationNew
-            button-id="new-guitarsongbook-button"
-            button-class="icon-add"
-            :text="t('guitarsongbook', 'Create song')"
-            :disabled="loading || updating"
-            @click="createSong">
+        <NcAppNavigationNew button-id="new-guitarsongbook-button" button-class="icon-add" :text="t('guitarsongbook', 'Create song')" :disabled="loading || updating || editing" @click="createSong">
           <template #icon>
             <PlusIcon :size="20" />
           </template>
         </NcAppNavigationNew>
-        <FileSelect
-            :text="t('guitarsongbook', 'Import Music File')"
-            accept=".gp3, .gp4, .gp5, .gpx, .gp, .cap, .xml, .txt"
-            @select="importMusicFile"/>
+        <FileSelect :text="t('guitarsongbook', 'Import Music File')" accept=".gp3, .gp4, .gp5, .gpx, .gp, .cap, .xml, .txt" :disabled="loading || updating || editing" @select="importMusicFile"/>
         <ul>
-          <NcAppNavigationItem
-            v-for="song in songs"
-            :key="song.id"
-            :title="song.name ? song.name : t('guitarsongbook', 'New song')"
-            :class="{active: currentSongId === song.id}"
-            :deacitve="loading || updating"
-            @click="openSong(song)">
-            <template #actions>
-              <NcActionButton
-                icon="icon-delete"
-                @click="deleteSong(song)">
-                {{ t('guitarsongbook', 'Delete') }}
-              </NcActionButton>
-            </template>
+          <NcAppNavigationItem v-for="song in songs" :key="song.id" :title="song.name" :class="{active: currentSongId === song.id}" :disabled="loading || updating || editing" @click="openSong(song)">
+<!--            <template #actions>-->
+<!--              <NcActionButton icon="icon-delete" @click="deleteSong(song)">-->
+<!--                {{ t('guitarsongbook', 'Delete') }}-->
+<!--              </NcActionButton>-->
+<!--            </template>-->
           </NcAppNavigationItem>
         </ul>
       </template>
       <template #footer>
-        <NcAppNavigationNew
-            :text="t('guitarsongbook', 'Songbook settings')"
-            @click="openSettingsDialog">
+        <NcAppNavigationNew :text="t('guitarsongbook', 'Songbook settings')" :deacitve="settingsOpen" :disabled="loading || updating || editing" @click="openSettingsDialog">
           <template #icon>
             <CogIcon :size="20" />
           </template>
@@ -49,10 +31,7 @@
         <AppSettingsDialog :open="settingsOpen" @close="closeSettingsDialog"/>
       </template>
     </NcAppNavigation>
-    <AppContent
-        :song="currentSong"
-        @updated="songUpdated"
-        @deleted="songDeleted"/>
+    <AppContent :song="currentSong" @updated="songUpdated" @deleted="songDeleted" @editable="songEditable"/>
 	</NcContent>
 </template>
 
@@ -61,14 +40,14 @@ import NcContent from '@nextcloud/vue/dist/Components/NcContent'
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation'
 import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
 import NcAppNavigationNew from '@nextcloud/vue/dist/Components/NcAppNavigationNew'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
+//import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import AppContent from './AppContent'
 import AppSettingsDialog from './AppSettingsDialog'
 import FileSelect from './FileSelect'
 import PlusIcon from 'vue-material-design-icons/Plus'
 import CogIcon from 'vue-material-design-icons/Cog'
 import '@nextcloud/dialogs/styles/toast.scss'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError /* , showSuccess */ } from '@nextcloud/dialogs'
 import api from '../api'
 
 export default {
@@ -78,7 +57,7 @@ export default {
 		NcAppNavigation,
 		NcAppNavigationItem,
 		NcAppNavigationNew,
-		NcActionButton,
+		//NcActionButton,
     AppContent,
     AppSettingsDialog,
     FileSelect,
@@ -91,6 +70,7 @@ export default {
 			currentSongId: null,
 			loading: true,
       updating: false,
+      editing: false,
       settingsOpen: false,
 		}
 	},
@@ -142,22 +122,22 @@ export default {
       }
       this.updating = false
     },
-		async deleteSong(song) {
-      this.updating = true
-			try {
-				await api.songs.destroy(song)
-				this.songs.splice(this.songs.indexOf(song), 1)
-        if (this.currentSongId === song.id) {
-					this.currentSongId = null
-				}
-				showSuccess(t('guitarsongbook', 'Song deleted'))
-			}
-      catch (e) {
-        console.log(e.response ? e.response.data : e.message)
-				showError(t('guitarsongbook', 'Could not delete the song'))
-			}
-      this.updating = false
-		},
+		// async deleteSong(song) {
+    //   this.updating = true
+		// 	try {
+		// 		await api.songs.destroy(song)
+		// 		this.songs.splice(this.songs.indexOf(song), 1)
+    //     if (this.currentSongId === song.id) {
+		// 			this.currentSongId = null
+		// 		}
+		// 		showSuccess(t('guitarsongbook', 'Song deleted'))
+		// 	}
+    //   catch (e) {
+    //     console.log(e.response ? e.response.data : e.message)
+		// 		showError(t('guitarsongbook', 'Could not delete the song'))
+		// 	}
+    //   this.updating = false
+		// },
     // ---------------------------
     // AppContent
     // ---------------------------
@@ -173,6 +153,9 @@ export default {
       if (this.currentSongId === song.id) {
         this.currentSongId = null
       }
+    },
+    songEditable(value) {
+      this.editing = value
     },
     // ---------------------------
     // AppSettingsDialog
@@ -195,5 +178,10 @@ export default {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+}
+li[disabled] {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.6;
 }
 </style>

@@ -16,12 +16,12 @@
                 <LoadingIcon v-if="scanningLibrary"/>
                 <ReloadIcon v-else/>
               </template>
-              {{ t("guitarsongbook", "Rescan library") }}
+              {{ t('guitarsongbook', 'Rescan library') }}
             </NcButton>
           </li>
           <li>
             <label class="settings-input">
-              {{ t("guitarsongbook", "Songs folder") }}
+              {{ t('guitarsongbook', 'Songs folder') }}
             </label>
             <input
                 type="text"
@@ -31,7 +31,7 @@
           </li>
           <li>
             <label class="settings-input">
-              {{ t("guitarsongbook", "Update interval in minutes") }}
+              {{ t('guitarsongbook', 'Update interval in minutes') }}
             </label>
             <input
                 type="number"
@@ -48,7 +48,7 @@
         :title="t('cookbook', 'Info blocks')">
       <fieldset>
         <legend class="settings-info">
-          {{ t("guitarsongbook", "Control which blocks of information are shown in the recipe view. If you do not use some features and find them distracting, you may hide them.") }}
+          {{ t('guitarsongbook', 'Control which blocks of information are shown in the recipe view. If you do not use some features and find them distracting, you may hide them.') }}
         </legend>
         <ul>
           <li>
@@ -60,7 +60,7 @@
                 v-model="visiblePreparationTime"
             />
             <label for="info-blocks-checkbox-preparation-time">
-              {{ t("guitarsongbook", "Preparation time") }}
+              {{ t('guitarsongbook', 'Preparation time') }}
             </label>
           </li>
         </ul>
@@ -78,7 +78,7 @@
           :disabled="!firstName || !lastName"
           @click="close"
           type="primary">
-        {{ t("guitarsongbook", "OK") }}
+        {{ t('guitarsongbook', 'OK') }}
       </NcButton>
     </div>
   </NcAppSettingsDialog>
@@ -129,6 +129,11 @@ export default {
       visiblePreparationTime: true,
 		}
 	},
+  watch: {
+    open(value) {
+      this.isOpen = value
+    }
+  },
 	methods: {
     close() {
       this.isOpen = false
@@ -138,12 +143,7 @@ export default {
     },
     rescan() {
     }
-	},
-  watch: {
-    open(value) {
-      this.isOpen = value
-    }
-  }
+	}
 }
 </script>
 

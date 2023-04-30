@@ -42,15 +42,15 @@ export default {
   mounted() {
     this.filename = ''
   },
+  watch: {
+    filename(value, old) {
+      console.log('filename has changed')
+    }
+  },
   methods: {
     setFilename(filename) {
       this.filename = filename
       this.$emit('change', filename);
-    }
-  },
-  watch: {
-    filename(value, old) {
-      console.log('filename has changed')
     }
   }
 }

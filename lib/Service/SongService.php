@@ -222,7 +222,6 @@ class SongService
     {
 		try {
 			$song = $this->songMapper->find($id, $userId);
-
             $this->fileService->destroy($song->getName());
 			$this->songMapper->delete($song);
 

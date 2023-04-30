@@ -4,7 +4,7 @@
     <div class="app-controls">
       <div class="location">
         <h2>
-          {{ t('guitarsongbook', 'New song') }}
+          {{ currentSong?.name  || '' }}
         </h2>
       </div>
 <!--      <NcButton v-if="!editMode" type="primary" @click="enterEditMode">-->
@@ -20,7 +20,7 @@
 <!--        </template>-->
 <!--        {{ t('guitarsongbook', 'Save') }}-->
 <!--      </NcButton>-->
-      <NcActions v-if="currentSong" class="overflow-menu" :force-menu="true">
+      <NcActions v-if="currentSong" :open.sync="actionMenuIsOpen" class="overflow-menu" :force-menu="true">
         <NcActionButton v-if="!editMode" class="action-button" @click="print">
           <template #icon="">
             <printer-icon :size="20"/>
@@ -108,12 +108,16 @@ export default {
     deleted(song) {
       return true
     },
+    editable(b) {
+      return true
+    },
   },
   data() {
     return {
       currentSong: this.song,
       saving: false,
       editMode: false,
+      actionMenuIsOpen: false,
     }
   },
   computed: {
@@ -121,32 +125,49 @@ export default {
       return this.currentSong ? api.songs.urlFile(this.currentSong.id) : null
     }
   },
+  watch: {
+    song(value) {
+      console.log('AppContent: WATCH song', value)
+      this.currentSong = value
+      this.editMode = false
+    },
+    editMode(value) {
+      console.log('AppContent: WATCH editMode', value)
+      this.$emit('editable', value)
+    }
+  },
   methods: {
     // ---------------------------
     // Menü
     // ---------------------------
     enterEditMode() {
+      this.actionMenuIsOpen = false
       this.editMode = true
+      //this.$emit('editable', true)
     },
     cancelEditMode() {
-      console.log('AppContent: cancelEditMode', this.currentSong)
+      this.actionMenuIsOpen = false
       this.editMode = false
+      //this.$emit('editable', false)
     },
     async deleteSong() {
+      this.actionMenuIsOpen = false
       console.log('AppContent: deleteSong', this.currentSong)
       this.saving = true
       try {
-        await api.songs.delete(this.currentSong)
+        await api.songs.destroy(this.currentSong)
         this.$emit('deleted', this.currentSong)
         this.currentSong = null
         showSuccess(t('guitarsongbook', 'Song deleted'))
-      } catch (e) {
+      }
+      catch (e) {
         console.log(e.response ? e.response.data : e.message)
         showError(t('guitarsongbook', 'Could not delete the song'))
       }
       this.saving = false
     },
     print() {
+      this.actionMenuIsOpen = false
       console.log('print')
     },
     // ---------------------------
@@ -172,15 +193,9 @@ export default {
       }
       this.saving = false
       this.editMode = false
+      //this.$emit('editable', false)
     },
-  },
-  watch: {
-    song(value) {
-      console.log('AppContent: WATCH song', value)
-      this.currentSong = value
-      this.editMode = false
-    },
-  },
+  }
 }
 </script>
 
