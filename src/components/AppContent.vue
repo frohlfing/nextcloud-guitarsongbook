@@ -47,9 +47,10 @@
     <div class="app-main">
       <div v-if="currentSong">
         <div v-if="!editMode">
-          <AlphaTab :gp-file="gpFile" @score-loaded="scoreLoaded"/>
+          <Tracks :tracks="tracks" :index.sync="trackIndex"></Tracks>
+          <AlphaTab :gp-file="gpFile" :track-index="trackIndex" @score-loaded="scoreLoaded"/>
         </div>
-        <SongForm v-if="editMode" :song="currentSong" @submit="updateSong" />
+        <SongForm v-if="editMode" :song="currentSong" @submit="updateSong"/>
       </div>
       <div v-if="!currentSong" id="emptycontent">
         <div class="icon-file"></div>
@@ -68,6 +69,7 @@ import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import AlphaTab from './AlphaTab'
+import Tracks from './Tracks'
 import SongForm from './SongForm'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
 import LoadingIcon from 'vue-material-design-icons/Loading.vue'
@@ -87,6 +89,7 @@ export default {
     NcActionButton,
     NcButton,
     AlphaTab,
+    Tracks,
     SongForm,
     NcLoadingIcon,
     LoadingIcon,
@@ -115,6 +118,9 @@ export default {
   data() {
     return {
       currentSong: this.song,
+      // todo options hinzufügen, dass die Daten aus options.json hat (oder besser als computed, wenn computed cached)
+      score: null,
+      trackIndex: 0, // todo trackIndex mit options.trackIndex initialisieren
       saving: false,
       editMode: false,
       actionMenuIsOpen: false,
@@ -123,12 +129,17 @@ export default {
   computed: {
     gpFile() {
       return this.currentSong ? api.songs.urlFile(this.currentSong.id) : null
+    },
+    tracks() {
+      return this.score?.tracks || []
     }
   },
   watch: {
     song(value) {
       console.log('AppContent: WATCH song', value)
       this.currentSong = value
+      // todo options aus options.json laden falls nicht als computed realisiert
+      this.trackIndex = 0  // todo trackIndex mit options.trackIndex initialisieren
       this.editMode = false
     },
     editMode(value) {
@@ -158,6 +169,8 @@ export default {
         await api.songs.destroy(this.currentSong)
         this.$emit('deleted', this.currentSong)
         this.currentSong = null
+        // todo options = null wenn nicht als computed realisiert
+        this.trackIndex = 0
         showSuccess(t('guitarsongbook', 'Song deleted'))
       }
       catch (e) {
@@ -174,27 +187,29 @@ export default {
     // AlphaTab
     // ---------------------------
     scoreLoaded(score) {
-      console.log('scoreLoaded', score)
+      console.log('AlphaContent: scoreLoaded', score)
+      this.score = score
     },
     // ---------------------------
     // SongForm
     // ---------------------------
-    async updateSong(song) {
-      console.log('AppContent: updateSong', this.currentSong)
-      this.saving = true
-      try {
-        await api.songs.update(song)
-        this.currentSong = song
-        this.$emit('updated', song)
+    async updateSong(song, isDirty) {
+      if (isDirty) {
+        console.log('AppContent: updateSong', isDirty)
+        this.saving = true
+        try {
+          await api.songs.update(song)
+          this.currentSong = song
+          this.$emit('updated', song)
+        } catch (e) {
+          console.error(e.response ? e.response.data : e.message)
+          showError(t('guitarsongbook', 'Could not save the song'))
+        }
+        this.saving = false
       }
-      catch (e) {
-        console.error(e.response ? e.response.data : e.message)
-        showError(t('guitarsongbook', 'Could not save the song'))
-      }
-      this.saving = false
       this.editMode = false
-      //this.$emit('editable', false)
     },
+    // todo async updateOptions(options)
   }
 }
 </script>
@@ -215,14 +230,12 @@ div.app-controls {
   background-color: var(--color-main-background);
   gap: 8px;
 }
-
 div.app-controls div.location {
   display: flex;
   flex: 1;
   flex-direction: column;
   justify-content: center;
 }
-
 div.app-controls div.location h2 {
   width: 100%;
   margin-bottom: 0;

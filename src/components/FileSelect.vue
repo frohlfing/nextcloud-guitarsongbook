@@ -1,17 +1,7 @@
 <template>
   <div class="file-upload">
-    <input
-        :id="buttonId"
-        ref="input"
-        type="file"
-        :accept="accept"
-        class="hidden-visually"
-        :disabled="loading || disabled"
-        @change="change($event)"/>
-    <NcAppNavigationNew
-        :text="text"
-        :disabled="disabled"
-        @click="$refs.input.click()">
+    <input :id="buttonId" ref="input" type="file" :accept="accept" class="hidden-visually" :disabled="loading || disabled" @change="change($event)"/>
+    <NcAppNavigationNew :text="text" :disabled="disabled" @click="$refs.input.click()">
       <template #icon>
         <LoadingIcon v-if="loading" :size="20" class="animation-rotate" />
         <UploadIcon v-if="!loading" :size="20" />

@@ -4,7 +4,7 @@
     <input type="text" id="name" ref="name" v-model="newSong.name" :disabled="saving"/>
     <label for="title">{{ t('guitarsongbook', 'Title') }}</label>
     <input type="text" id="title" v-model="newSong.title" :disabled="saving"/>
-    <input type="button" class="primary" :value="t('guitarsongbook', 'Save')" :disabled="!canSubmit" @click="submit"/>
+    <input type="button" class="primary" :value="t('guitarsongbook', 'Ok')" :disabled="!canSubmit" @click="submit"/>
   </div>
 </template>
 
@@ -23,10 +23,7 @@ export default {
     },
   },
   emits: {
-    submit(song) {
-      return true
-    },
-    modified(b) {
+    submit(song, isDirty) {
       return true
     }
   },
@@ -89,10 +86,9 @@ export default {
     },
 		async submit() {
       console.log('SongForm: BEGIN submit', this.isDirty)
-			this.saving = true
-      this.$emit('submit', this.newSong);
-			this.saving = false
-      this.isDirty = false
+      this.saving = true
+      this.$emit('submit', this.newSong, this.isDirty);
+      this.saving = false
       console.log('SongForm: END submit')
 		}
 	}

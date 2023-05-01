@@ -2,7 +2,7 @@
 OC.L10N.register("guitarsongbook",
 {
     // Common
-    "OK": "OK",
+    "Ok": "Ok",
     "Cancel": "Abbrechen",
     "Discard": "Verwerfen",
     "Edit": "Bearbeiten",
