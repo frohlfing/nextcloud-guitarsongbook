@@ -11,11 +11,19 @@ OC.L10N.register("guitarsongbook",
     "Print": "Drucken",
     "Reload": "Neu laden",
     "New": "Neu",
+    "Export": "Exportieren",
+    "Play": "Abspielen",
+    "Pause": "Pause",
+    "Count-In": "Vorzählen",
+    "Metronome": "Metronom",
+    "Loop": "Wiederholen",
+    "Speed": "Geschwindigkeit",
 
     // App todo Componente genauer bezeichnen
     "Welcome": "Willkommen",
     "Create song": "Song erstellen",
     "Import Music File": "Musik-Datei importieren",
+    "Export to Guitar Pro 7": "Exportieren nach GP7",
     "New song": "Neuer Song",
 
     // todo message ausgeben

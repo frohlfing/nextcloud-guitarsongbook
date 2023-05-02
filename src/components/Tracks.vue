@@ -1,26 +1,25 @@
 <template>
   <div>
-    <h3>Tracks</h3>
-    <ul class="tracks">
-      <li v-for="track in tracks" :key="track.index" :class="{ active: track.index === index }" @click="click(track.index)">
+    <select id="track" :disabled="!tracks" @change="change($event)" title="Tracks">
+      <option v-for="track in tracks" :key="track.index" :value="track.index" :selected="track.index === index">
         {{ track.name || ('Track ' + (track.index + 1)) }}
-      </li>
-    </ul>
+      </option>
+    </select>
   </div>
 </template>
 
 <script>
-//import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
+import NcSelect from '@nextcloud/vue/dist/Components/NcSelect'
 
 export default {
   name: 'Tracks',
   components: {
-    //NcLoadingIcon,
+    NcSelect,
   },
   props: {
     tracks: {
       type: Array,
-      require: true
+      default: []
     },
     index: {
       type: Number,
@@ -28,18 +27,9 @@ export default {
     }
   },
   methods: {
-    click(index) {
-      this.$emit('update:index', index);
+    change(event) {
+      this.$emit('update:index', parseInt(event.target.value, 10));
     }
   }
 }
 </script>
-
-<style scoped>
-  ul.tracks li {
-    cursor: pointer;
-  }
-  ul.tracks li.active {
-    color: red;
-  }
-</style>

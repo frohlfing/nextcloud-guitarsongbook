@@ -7,25 +7,42 @@
           {{ currentSong?.name  || '' }}
         </h2>
       </div>
-<!--      <NcButton v-if="!editMode" type="primary" @click="enterEditMode">-->
-<!--        <template #icon>-->
-<!--          <PencilIcon :size="20"/>-->
-<!--        </template>-->
-<!--        {{ t('guitarsongbook', 'Edit') }}-->
-<!--      </NcButton>-->
-<!--      <NcButton v-if="editMode" type="primary" @click="updateSong">-->
-<!--        <template #icon>-->
-<!--          <LoadingIcon v-if="saving" class="animation-rotate" :size="20"/>-->
-<!--          <CheckmarkIcon v-else :size="20"/>-->
-<!--        </template>-->
-<!--        {{ t('guitarsongbook', 'Save') }}-->
-<!--      </NcButton>-->
+      <Tracks v-if="currentSong && !editMode" :tracks="tracks" :index.sync="trackIndex"/>
+      <NcButton v-if="currentSong && !editMode && !playing" type="tertiary" :title="t('guitarsongbook', 'Play')" @click="play">
+        <template #icon>
+          <PlayIcon :size="20"/>
+        </template>
+      </NcButton>
+      <NcButton v-if="currentSong && !editMode && playing" type="tertiary" @click="pause">
+        <template #icon>
+          <PauseIcon :size="20"/>
+        </template>
+      </NcButton>
       <NcActions v-if="currentSong" :open.sync="actionMenuIsOpen" class="overflow-menu" :force-menu="true">
+        <NcActionCheckbox v-if="!editMode" :checked="true" @change="countIn($event)">
+          {{ t('guitarsongbook', 'Count-In') }}
+        </NcActionCheckbox>
+        <NcActionCheckbox v-if="!editMode" :checked="true" @change="metronome($event)">
+          {{ t('guitarsongbook', 'Metronome') }}
+        </NcActionCheckbox>
+        <NcActionCheckbox v-if="!editMode" :checked="true" @change="loop($event)">
+          {{ t('guitarsongbook', 'Loop') }}
+        </NcActionCheckbox>
+        <NcActionButton v-if="!editMode" class="action-button" icon="icon-delete" @click="speed">
+          {{ t('guitarsongbook', 'Speed') }}
+        </NcActionButton>
+        <NcActionSeparator v-if="!editMode" class="action-button"/>
         <NcActionButton v-if="!editMode" class="action-button" @click="print">
           <template #icon="">
             <printer-icon :size="20"/>
           </template>
           {{ t('guitarsongbook', 'Print') }}
+        </NcActionButton>
+        <NcActionButton v-if="!editMode" class="action-button" @click="download">
+          <template #icon="">
+            <DownloadIcon :size="20"/>
+          </template>
+          {{ t('guitarsongbook', 'Export') }}
         </NcActionButton>
         <NcActionButton v-if="!editMode" class="action-button" @click="enterEditMode">
           <template #icon="">
@@ -47,7 +64,6 @@
     <div class="app-main">
       <div v-if="currentSong">
         <div v-if="!editMode">
-          <Tracks :tracks="tracks" :index.sync="trackIndex"></Tracks>
           <AlphaTab :gp-file="gpFile" :track-index="trackIndex" @score-loaded="scoreLoaded"/>
         </div>
         <SongForm v-if="editMode" :song="currentSong" @submit="updateSong"/>
@@ -68,6 +84,9 @@ import NcActions from '@nextcloud/vue/dist/Components/NcActions'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
+import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput'
+import NcActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox'
+import NcActionSeparator from '@nextcloud/vue/dist/Components/NcActionSeparator'
 import AlphaTab from './AlphaTab'
 import Tracks from './Tracks'
 import SongForm from './SongForm'
@@ -75,6 +94,9 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
 import LoadingIcon from 'vue-material-design-icons/Loading.vue'
 import PencilIcon from 'vue-material-design-icons/Pencil.vue'
 import PrinterIcon from 'vue-material-design-icons/Printer.vue'
+import PlayIcon from 'vue-material-design-icons/Play.vue'
+import PauseIcon from 'vue-material-design-icons/Pause.vue'
+import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import EyeIcon from 'vue-material-design-icons/Eye.vue'
 import CheckmarkIcon from 'vue-material-design-icons/Check.vue'
 import '@nextcloud/dialogs/styles/toast.scss'
@@ -88,6 +110,9 @@ export default {
     NcActions,
     NcActionButton,
     NcButton,
+    NcActionInput,
+    NcActionCheckbox,
+    NcActionSeparator,
     AlphaTab,
     Tracks,
     SongForm,
@@ -95,6 +120,9 @@ export default {
     LoadingIcon,
     PencilIcon,
     PrinterIcon,
+    PlayIcon,
+    PauseIcon,
+    DownloadIcon,
     EyeIcon,
     CheckmarkIcon,
   },
@@ -122,6 +150,7 @@ export default {
       score: null,
       trackIndex: 0, // todo trackIndex mit options.trackIndex initialisieren
       saving: false,
+      playing: false,
       editMode: false,
       actionMenuIsOpen: false,
     }
@@ -179,9 +208,33 @@ export default {
       }
       this.saving = false
     },
+    play() {
+      this.playing = true
+      console.log('play')
+    },
+    pause() {
+      this.playing = false
+      console.log('pause')
+    },
+    countIn(event) {
+      console.log('countIn', event.target.checked)
+    },
+    metronome(event) {
+      console.log('metronome', event.target.checked)
+    },
+    loop(event) {
+      console.log('loop', event.target.checked)
+    },
+    speed() {
+      console.log('speed')
+    },
     print() {
       this.actionMenuIsOpen = false
       console.log('print')
+    },
+    download() {
+      this.actionMenuIsOpen = false
+      console.log('download')
     },
     // ---------------------------
     // AlphaTab
@@ -235,6 +288,8 @@ div.app-controls div.location {
   flex: 1;
   flex-direction: column;
   justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
 }
 div.app-controls div.location h2 {
   width: 100%;
